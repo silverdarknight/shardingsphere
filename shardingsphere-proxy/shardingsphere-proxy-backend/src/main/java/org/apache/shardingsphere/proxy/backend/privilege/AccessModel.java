@@ -1,9 +1,9 @@
-package org.apache.shardingsphere.shardingproxy.backend.privilege;
+package org.apache.shardingsphere.proxy.backend.privilege;
 
 import lombok.Getter;
-import org.apache.shardingsphere.shardingproxy.backend.privilege.impl.RolePrivilege;
-import org.apache.shardingsphere.shardingproxy.backend.privilege.impl.UserPrivilege;
-import org.apache.shardingsphere.underlying.common.exception.ShardingSphereException;
+import org.apache.shardingsphere.proxy.backend.privilege.impl.RolePrivilege;
+import org.apache.shardingsphere.proxy.backend.privilege.impl.UserPrivilege;
+import org.apache.shardingsphere.infra.exception.ShardingSphereException;
 
 import java.util.HashSet;
 import java.util.Iterator;

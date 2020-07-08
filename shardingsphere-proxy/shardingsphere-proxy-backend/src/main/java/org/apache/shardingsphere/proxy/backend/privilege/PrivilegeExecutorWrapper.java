@@ -1,4 +1,4 @@
-package org.apache.shardingsphere.shardingproxy.backend.privilege;
+package org.apache.shardingsphere.proxy.backend.privilege;
 
 import java.util.List;
 

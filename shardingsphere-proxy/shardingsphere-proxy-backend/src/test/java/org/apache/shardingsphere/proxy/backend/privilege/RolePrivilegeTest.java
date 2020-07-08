@@ -1,6 +1,6 @@
-package org.apache.shardingsphere.shardingproxy.backend.privilege;
+package org.apache.shardingsphere.proxy.backend.privilege;
 
-import org.apache.shardingsphere.shardingproxy.backend.privilege.impl.RolePrivilege;
+import org.apache.shardingsphere.proxy.backend.privilege.impl.RolePrivilege;
 import org.junit.Test;
 
 import java.util.LinkedList;
