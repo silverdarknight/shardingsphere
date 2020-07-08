@@ -3,10 +3,7 @@ package org.apache.shardingsphere.proxy.backend.privilege;
 import lombok.Getter;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Getter
 public class PrivilegePath {
@@ -51,6 +48,16 @@ public class PrivilegePath {
 
     public PrivilegePath(String targetDatabase, String targetTable){
         this.setPrivilegeInformation(constructInformationString(targetDatabase,targetTable,null));
+    }
+
+    public static Collection<PrivilegePath> constructor(List<String> informationList){
+        Collection<PrivilegePath> paths = new HashSet<>();
+        Iterator<String> iterator = informationList.iterator();
+        while (iterator.hasNext()){
+            String curInformation = iterator.next();
+            paths.add(new PrivilegePath(curInformation));
+        }
+        return paths;
     }
 
     private String constructInformationString(String targetDatabase, String targetTable, List<String> targetColumns){

@@ -5,6 +5,7 @@ import lombok.Setter;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -41,6 +42,16 @@ public class PrivilegeModel {
     protected void addPrivilege(String privilegeType, PrivilegePath privilegePath){
         HashSet<PrivilegePath> targetPrivilegePaths = chosePrivilegeType(privilegeType);
         targetPrivilegePaths.add(privilegePath);
+    }
+
+    protected void addPrivilege(String privilegeType, String information){
+        HashSet<PrivilegePath> targetPrivilegePaths = chosePrivilegeType(privilegeType);
+        targetPrivilegePaths.add(new PrivilegePath(information));
+    }
+
+    protected void addPrivileges(String privilegeType, List<String> informationList){
+        HashSet<PrivilegePath> targetPrivilegePaths = chosePrivilegeType(privilegeType);
+        targetPrivilegePaths.addAll(PrivilegePath.constructor(informationList));
     }
 
     protected void removePrivilege(String privilegeType, PrivilegePath privilegePath){
