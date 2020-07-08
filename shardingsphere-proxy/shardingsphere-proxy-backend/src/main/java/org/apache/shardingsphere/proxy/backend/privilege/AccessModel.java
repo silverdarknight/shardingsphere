@@ -5,8 +5,10 @@ import org.apache.shardingsphere.proxy.backend.privilege.impl.RolePrivilege;
 import org.apache.shardingsphere.proxy.backend.privilege.impl.UserPrivilege;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 
 @Getter
 public class AccessModel {
@@ -19,9 +21,7 @@ public class AccessModel {
     }
 
     public void removeUser(UserPrivilege userPrivilege){
-        if(this.getUsersPrivilege().contains(userPrivilege)){
-            this.getUsersPrivilege().remove(userPrivilege);
-        }
+        this.getUsersPrivilege().remove(userPrivilege);
     }
 
     public void addRole(RolePrivilege rolePrivilege){
@@ -29,9 +29,7 @@ public class AccessModel {
     }
 
     public void removeUser(RolePrivilege rolePrivilege){
-        if(this.getRolesPrivileges().contains(rolePrivilege)){
-            this.getRolesPrivileges().remove(rolePrivilege);
-        }
+        this.getRolesPrivileges().remove(rolePrivilege);
     }
 
     public UserPrivilege getUser(String userName){
@@ -43,6 +41,16 @@ public class AccessModel {
         throw new ShardingSphereException("No such user named :" + userName);
     }
 
+    public Collection<UserPrivilege> getUsers(List<String> userNames){
+        Collection<UserPrivilege> users = new HashSet<>();
+        Iterator<String> iterator = userNames.iterator();
+        while (iterator.hasNext()){
+            String curUserName = iterator.next();
+            users.add(this.getUser(curUserName));
+        }
+        return users;
+    }
+
     public RolePrivilege getRole(String roleName){
         Iterator<RolePrivilege> iterator = this.getRolesPrivileges().iterator();
         while (iterator.hasNext()){
@@ -50,5 +58,15 @@ public class AccessModel {
             if(curRolePrivilege.getRoleName().equals(roleName)) return curRolePrivilege;
         }
         throw new ShardingSphereException("No such role named :" + roleName);
+    }
+
+    public Collection<RolePrivilege> getRoles(List<String> roleNames){
+        Collection<RolePrivilege> roles = new HashSet<>();
+        Iterator<String> iterator = roleNames.iterator();
+        while (iterator.hasNext()){
+            String curRoleName = iterator.next();
+            roles.add(this.getRole(curRoleName));
+        }
+        return roles;
     }
 }
