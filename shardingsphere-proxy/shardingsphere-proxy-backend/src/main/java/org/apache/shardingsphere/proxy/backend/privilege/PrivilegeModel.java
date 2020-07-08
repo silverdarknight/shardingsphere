@@ -1,8 +1,6 @@
 package org.apache.shardingsphere.proxy.backend.privilege;
 
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
 
@@ -17,38 +15,38 @@ import java.util.Objects;
 public class PrivilegeModel {
     public final static int INITIAL_PRIVILEGE_LENGTH = 8;
     // grant create delete(drop) update select
-    protected HashSet<Privilege> grantPrivileges = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH)
-            ,insertPrivileges = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH)
-            ,deletePrivileges = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH)
-            ,updatePrivileges = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH)
-            ,selectPrivileges = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH);
+    protected HashSet<PrivilegePath> grantPrivilegePaths = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH)
+            , insertPrivilegePaths = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH)
+            , deletePrivilegePaths = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH)
+            , updatePrivilegePaths = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH)
+            , selectPrivilegePaths = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH);
 
-    protected HashSet<Privilege> chosePrivilegeType(String privilegeType){
+    protected HashSet<PrivilegePath> chosePrivilegeType(String privilegeType){
         switch (privilegeType){
             case "grant":
-                return this.getGrantPrivileges();
+                return this.getGrantPrivilegePaths();
             case "create":
-                return this.getInsertPrivileges();
+                return this.getInsertPrivilegePaths();
             case "delete":
-                return this.getDeletePrivileges();
+                return this.getDeletePrivilegePaths();
             case "update":
-                return this.getUpdatePrivileges();
+                return this.getUpdatePrivilegePaths();
             case "select":
-                return this.getSelectPrivileges();
+                return this.getSelectPrivilegePaths();
             default:
                 throw new ShardingSphereException("Can not match privilege type");
         }
     }
 
-    protected void addPrivilege(String privilegeType,Privilege privilege){
-        HashSet<Privilege> targetPrivileges = chosePrivilegeType(privilegeType);
-        targetPrivileges.add(privilege);
+    protected void addPrivilege(String privilegeType, PrivilegePath privilegePath){
+        HashSet<PrivilegePath> targetPrivilegePaths = chosePrivilegeType(privilegeType);
+        targetPrivilegePaths.add(privilegePath);
     }
 
-    protected void removePrivilege(String privilegeType,Privilege privilege){
-        HashSet<Privilege> targetPrivileges = chosePrivilegeType(privilegeType);
-        if(targetPrivileges.contains(privilege)){
-            targetPrivileges.remove(privilege);
+    protected void removePrivilege(String privilegeType, PrivilegePath privilegePath){
+        HashSet<PrivilegePath> targetPrivilegePaths = chosePrivilegeType(privilegeType);
+        if(targetPrivilegePaths.contains(privilegePath)){
+            targetPrivilegePaths.remove(privilegePath);
         }
     }
 
@@ -57,15 +55,15 @@ public class PrivilegeModel {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PrivilegeModel that = (PrivilegeModel) o;
-        return Objects.equals(grantPrivileges, that.grantPrivileges) &&
-                Objects.equals(insertPrivileges, that.insertPrivileges) &&
-                Objects.equals(deletePrivileges, that.deletePrivileges) &&
-                Objects.equals(updatePrivileges, that.updatePrivileges) &&
-                Objects.equals(selectPrivileges, that.selectPrivileges);
+        return Objects.equals(grantPrivilegePaths, that.grantPrivilegePaths) &&
+                Objects.equals(insertPrivilegePaths, that.insertPrivilegePaths) &&
+                Objects.equals(deletePrivilegePaths, that.deletePrivilegePaths) &&
+                Objects.equals(updatePrivilegePaths, that.updatePrivilegePaths) &&
+                Objects.equals(selectPrivilegePaths, that.selectPrivilegePaths);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(grantPrivileges, insertPrivileges, deletePrivileges, updatePrivileges, selectPrivileges);
+        return Objects.hash(grantPrivilegePaths, insertPrivilegePaths, deletePrivilegePaths, updatePrivilegePaths, selectPrivilegePaths);
     }
 }

@@ -21,10 +21,10 @@ public class UserPrivilegeTest {
     public void userPrivilegeCheckNotInRole(){
         // information (database / information)
         UserPrivilege userPrivilege = new UserPrivilege("testUser","pw");
-        Privilege privilege1 = new Privilege()
-                ,privilege2 = new Privilege("testDB.testTable.col1;col2");
-        userPrivilege.addPrivilege("select",privilege1); // select all privilege
-        userPrivilege.addPrivilege("delete",privilege2); // delete testDB.testTable.col1;col2
+        PrivilegePath privilegePath1 = new PrivilegePath()
+                , privilegePath2 = new PrivilegePath("testDB.testTable.col1;col2");
+        userPrivilege.addPrivilege("select", privilegePath1); // select all privilege
+        userPrivilege.addPrivilege("delete", privilegePath2); // delete testDB.testTable.col1;col2
         assertThat(userPrivilege.checkPrivilege("delete","testDB"),is(false));
         assertThat(userPrivilege.checkPrivilege("delete","testDB_false"),is(false));
         assertThat(userPrivilege.checkPrivilege("select","testDB_false"),is(true));
@@ -49,10 +49,10 @@ public class UserPrivilegeTest {
         // role
         userPrivilege1 = new UserPrivilege("testUser","pw");
         RolePrivilege rolePrivilege = new RolePrivilege("testRole");
-        Privilege privilege1 = new Privilege()
-                ,privilege2 = new Privilege("testDB_role.testTable_role.col1;col2");
-        rolePrivilege.addPrivilege("select",privilege1); // select all privilege
-        rolePrivilege.addPrivilege("delete",privilege2); // delete testDB.testTable.col1;col2
+        PrivilegePath privilegePath1 = new PrivilegePath()
+                , privilegePath2 = new PrivilegePath("testDB_role.testTable_role.col1;col2");
+        rolePrivilege.addPrivilege("select", privilegePath1); // select all privilege
+        rolePrivilege.addPrivilege("delete", privilegePath2); // delete testDB.testTable.col1;col2
         userPrivilege1.grant(rolePrivilege);
         assertThat(userPrivilege1.getRolesName().size(),is(1));
         userPrivilege1.grant(rolePrivilege);
@@ -89,10 +89,10 @@ public class UserPrivilegeTest {
         userPrivilege1.grant("select", "testDB.testTable.col3");
         //role
         RolePrivilege rolePrivilege = new RolePrivilege("testRole");
-        Privilege privilege1 = new Privilege()
-                ,privilege2 = new Privilege("testDB_role.testTable_role.col1;col2");
-        rolePrivilege.addPrivilege("select",privilege1); // select all privilege
-        rolePrivilege.addPrivilege("delete",privilege2); // delete testDB.testTable.col1;col2
+        PrivilegePath privilegePath1 = new PrivilegePath()
+                , privilegePath2 = new PrivilegePath("testDB_role.testTable_role.col1;col2");
+        rolePrivilege.addPrivilege("select", privilegePath1); // select all privilege
+        rolePrivilege.addPrivilege("delete", privilegePath2); // delete testDB.testTable.col1;col2
         userPrivilege1.revoke(rolePrivilege);
         assertThat(userPrivilege1.getRolesName().size(),is(0));
         userPrivilege1.revoke(rolePrivilege);
@@ -119,8 +119,8 @@ public class UserPrivilegeTest {
         userPrivilege1.grant("select", "testDB.testTable2");
         userPrivilege1.grant("select", "testDB.testTable.col1;col2");
         RolePrivilege rolePrivilege = new RolePrivilege("testRole");
-        Privilege privilege2 = new Privilege("testDB_role.testTable_role.col1;col2");
-        rolePrivilege.addPrivilege("delete",privilege2); // delete testDB.testTable.col1;col2
+        PrivilegePath privilegePath2 = new PrivilegePath("testDB_role.testTable_role.col1;col2");
+        rolePrivilege.addPrivilege("delete", privilegePath2); // delete testDB.testTable.col1;col2
         userPrivilege1.grant(rolePrivilege);
         // information (database / information)
         assertThat(userPrivilege1.checkPrivilege("select","testDB.testTable2"),is(true));
@@ -155,12 +155,12 @@ public class UserPrivilegeTest {
         RolePrivilege rolePrivilege = new RolePrivilege("testRole")
                 , rolePrivilege1 = new RolePrivilege("testRole")
                 , rolePrivilege2 = new RolePrivilege("testRole");
-        Privilege privilege = new Privilege("testDB_role.testTable_role.col1;col2")
-                , privilege1 = new Privilege("testDB_role.testTable_role.col1 ;col2")
-                , privilege2 = new Privilege("testDB_role.testTable_role.col1;col3");
-        rolePrivilege.addPrivilege("select",privilege);
-        rolePrivilege1.addPrivilege("select",privilege1);
-        rolePrivilege2.addPrivilege("select",privilege2);
+        PrivilegePath privilegePath = new PrivilegePath("testDB_role.testTable_role.col1;col2")
+                , privilegePath1 = new PrivilegePath("testDB_role.testTable_role.col1 ;col2")
+                , privilegePath2 = new PrivilegePath("testDB_role.testTable_role.col1;col3");
+        rolePrivilege.addPrivilege("select", privilegePath);
+        rolePrivilege1.addPrivilege("select", privilegePath1);
+        rolePrivilege2.addPrivilege("select", privilegePath2);
         assertThat(rolePrivilege.equals(rolePrivilege1),is(true));
         assertThat(rolePrivilege.equals(rolePrivilege2),is(false));
         assertThat(rolePrivilege.hashCode()==rolePrivilege1.hashCode(),is(true));

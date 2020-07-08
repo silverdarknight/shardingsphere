@@ -1,7 +1,6 @@
 package org.apache.shardingsphere.proxy.backend.privilege;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
 
 import java.util.HashSet;
@@ -10,7 +9,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
-public class Privilege {
+public class PrivilegePath {
     // database.table.col1;col2;col3
     // * denote every db/table/cols
     private String privilegeInformation;
@@ -19,11 +18,11 @@ public class Privilege {
         this.privilegeInformation = privilegeInformation.trim();
     }
 
-    public Privilege(){
+    public PrivilegePath(){
         this.setPrivilegeInformation("*.*.*");
     }
 
-    public Privilege(String privilegeInformation){
+    public PrivilegePath(String privilegeInformation){
         String candidatePrivilege = "*.*.*";
         if(privilegeInformation.length()==0) candidatePrivilege = "*.*.*";
         else {
@@ -45,12 +44,12 @@ public class Privilege {
         this.setPrivilegeInformation(candidatePrivilege);
     }
 
-    public Privilege(String targetDatabase, String targetTable, List<String> targetColumns){
+    public PrivilegePath(String targetDatabase, String targetTable, List<String> targetColumns){
         String finalPrivilege = constructInformationString(targetDatabase,targetTable,targetColumns);
         this.setPrivilegeInformation(finalPrivilege);
     }
 
-    public Privilege(String targetDatabase, String targetTable){
+    public PrivilegePath(String targetDatabase, String targetTable){
         this.setPrivilegeInformation(constructInformationString(targetDatabase,targetTable,null));
     }
 
@@ -187,10 +186,10 @@ public class Privilege {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Privilege privilege = (Privilege) o;
-        return Objects.equals(this.getTargetDatabase(), privilege.getTargetDatabase()) &&
-                Objects.equals(this.getTargetTable(), privilege.getTargetTable()) &&
-                Objects.equals(this.getTargetColumns(), privilege.getTargetColumns());
+        PrivilegePath privilegePath = (PrivilegePath) o;
+        return Objects.equals(this.getTargetDatabase(), privilegePath.getTargetDatabase()) &&
+                Objects.equals(this.getTargetTable(), privilegePath.getTargetTable()) &&
+                Objects.equals(this.getTargetColumns(), privilegePath.getTargetColumns());
     }
 
     @Override

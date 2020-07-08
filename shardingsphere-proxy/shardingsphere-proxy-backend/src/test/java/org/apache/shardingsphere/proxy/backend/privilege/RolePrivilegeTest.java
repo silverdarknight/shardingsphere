@@ -37,12 +37,12 @@ public class RolePrivilegeTest {
     @Test
     public void assertRolePrivilegeCheckExecutor(){
         RolePrivilege rolePrivilege = new RolePrivilege("testRole");
-        Privilege privilege1 = new Privilege("testDB1")
-                ,privilege2 = new Privilege("testDB2.testTable")
-                ,privilege3 = new Privilege("testDB3.testTable.col1");
-        rolePrivilege.addPrivilege("select",privilege1);
-        rolePrivilege.addPrivilege("select",privilege2);
-        rolePrivilege.addPrivilege("select",privilege3);
+        PrivilegePath privilegePath1 = new PrivilegePath("testDB1")
+                , privilegePath2 = new PrivilegePath("testDB2.testTable")
+                , privilegePath3 = new PrivilegePath("testDB3.testTable.col1");
+        rolePrivilege.addPrivilege("select", privilegePath1);
+        rolePrivilege.addPrivilege("select", privilegePath2);
+        rolePrivilege.addPrivilege("select", privilegePath3);
         // information (database / information)
         assertThat(rolePrivilege.checkPrivilege("select","testDB_false"),is(false));
         assertThat(rolePrivilege.checkPrivilege("select","testDB1"),is(true));

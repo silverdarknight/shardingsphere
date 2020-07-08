@@ -2,7 +2,7 @@ package org.apache.shardingsphere.proxy.backend.privilege.impl;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.shardingsphere.proxy.backend.privilege.Privilege;
+import org.apache.shardingsphere.proxy.backend.privilege.PrivilegePath;
 import org.apache.shardingsphere.proxy.backend.privilege.PrivilegeExecutorWrapper;
 import org.apache.shardingsphere.proxy.backend.privilege.PrivilegeModel;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
@@ -48,14 +48,14 @@ public class UserPrivilege extends PrivilegeModel implements PrivilegeExecutorWr
 
     @Override
     public boolean checkPrivilege(String privilegeType, String information) {
-        HashSet<Privilege> targetPrivileges = this.chosePrivilegeType(privilegeType);
+        HashSet<PrivilegePath> targetPrivilegePaths = this.chosePrivilegeType(privilegeType);
         String[] splitTargets = information.split("\\.");
         switch (splitTargets.length){
             case 1:
-                Iterator<Privilege> iterator = targetPrivileges.iterator();
+                Iterator<PrivilegePath> iterator = targetPrivilegePaths.iterator();
                 while (iterator.hasNext()){
-                    Privilege curPrivilege = iterator.next();
-                    if(curPrivilege.containsTargetPlace(splitTargets[0])) return true;
+                    PrivilegePath curPrivilegePath = iterator.next();
+                    if(curPrivilegePath.containsTargetPlace(splitTargets[0])) return true;
                 }
                 break;
             case 2:
@@ -79,11 +79,11 @@ public class UserPrivilege extends PrivilegeModel implements PrivilegeExecutorWr
 
     @Override
     public boolean checkPrivilege(String privilegeType, String database, String table) {
-        HashSet<Privilege> targetPrivileges = this.chosePrivilegeType(privilegeType);
-        Iterator<Privilege> iterator = targetPrivileges.iterator();
+        HashSet<PrivilegePath> targetPrivilegePaths = this.chosePrivilegeType(privilegeType);
+        Iterator<PrivilegePath> iterator = targetPrivilegePaths.iterator();
         while (iterator.hasNext()){
-            Privilege curPrivilege = iterator.next();
-            if(curPrivilege.containsTargetPlace(database,table)) return true;
+            PrivilegePath curPrivilegePath = iterator.next();
+            if(curPrivilegePath.containsTargetPlace(database,table)) return true;
         }
         if(roles != null && roles.size()!=0){
             Iterator<RolePrivilege> roleIterator = roles.iterator();
@@ -97,11 +97,11 @@ public class UserPrivilege extends PrivilegeModel implements PrivilegeExecutorWr
 
     @Override
     public boolean checkPrivilege(String privilegeType, String database, String table, String column) {
-        HashSet<Privilege> targetPrivileges = this.chosePrivilegeType(privilegeType);
-        Iterator<Privilege> iterator = targetPrivileges.iterator();
+        HashSet<PrivilegePath> targetPrivilegePaths = this.chosePrivilegeType(privilegeType);
+        Iterator<PrivilegePath> iterator = targetPrivilegePaths.iterator();
         while (iterator.hasNext()){
-            Privilege curPrivilege = iterator.next();
-            if(curPrivilege.containsTargetPlace(database,table,column)) return true;
+            PrivilegePath curPrivilegePath = iterator.next();
+            if(curPrivilegePath.containsTargetPlace(database,table,column)) return true;
         }
         if(roles != null && roles.size()!=0){
             Iterator<RolePrivilege> roleIterator = roles.iterator();
@@ -119,20 +119,20 @@ public class UserPrivilege extends PrivilegeModel implements PrivilegeExecutorWr
 
     @Override
     public void grant(String privilegeType, String information) {
-        Privilege targetPrivilege = new Privilege(information);
-        this.addPrivilege(privilegeType,targetPrivilege);
+        PrivilegePath targetPrivilegePath = new PrivilegePath(information);
+        this.addPrivilege(privilegeType, targetPrivilegePath);
     }
 
     @Override
     public void grant(String privilegeType, String database, String table) {
-        Privilege targetPrivilege = new Privilege(database, table);
-        this.addPrivilege(privilegeType, targetPrivilege);
+        PrivilegePath targetPrivilegePath = new PrivilegePath(database, table);
+        this.addPrivilege(privilegeType, targetPrivilegePath);
     }
 
     @Override
     public void grant(String privilegeType, String database, String table, List<String> column) {
-        Privilege targetPrivilege = new Privilege(database, table, column);
-        this.addPrivilege(privilegeType,targetPrivilege);
+        PrivilegePath targetPrivilegePath = new PrivilegePath(database, table, column);
+        this.addPrivilege(privilegeType, targetPrivilegePath);
     }
 
     public void revoke(RolePrivilege role){
@@ -141,8 +141,8 @@ public class UserPrivilege extends PrivilegeModel implements PrivilegeExecutorWr
 
     @Override
     public void revoke(String privilegeType, String information) {
-        Privilege privilege = new Privilege(information);try{
-            this.removePrivilege(privilegeType,privilege);
+        PrivilegePath privilegePath = new PrivilegePath(information);try{
+            this.removePrivilege(privilegeType, privilegePath);
         }
         catch (Exception e){
             throw new ShardingSphereException("there is no such grant defined for role '"+this.getUserName());
@@ -151,8 +151,8 @@ public class UserPrivilege extends PrivilegeModel implements PrivilegeExecutorWr
 
     @Override
     public void revoke(String privilegeType, String database, String table) {
-        Privilege privilege = new Privilege(database, table);try{
-            this.removePrivilege(privilegeType,privilege);
+        PrivilegePath privilegePath = new PrivilegePath(database, table);try{
+            this.removePrivilege(privilegeType, privilegePath);
         }
         catch (Exception e){
             throw new ShardingSphereException("there is no such grant defined for role '"+this.getUserName());
@@ -161,8 +161,8 @@ public class UserPrivilege extends PrivilegeModel implements PrivilegeExecutorWr
 
     @Override
     public void revoke(String privilegeType, String database, String table, List<String> column) {
-        Privilege privilege = new Privilege(database, table, column);try{
-            this.removePrivilege(privilegeType,privilege);
+        PrivilegePath privilegePath = new PrivilegePath(database, table, column);try{
+            this.removePrivilege(privilegeType, privilegePath);
         }
         catch (Exception e){
             throw new ShardingSphereException("there is no such grant defined for role '"+this.getUserName());

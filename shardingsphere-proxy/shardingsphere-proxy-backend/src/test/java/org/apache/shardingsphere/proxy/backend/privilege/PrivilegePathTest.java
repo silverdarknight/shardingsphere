@@ -12,147 +12,147 @@ public class PrivilegePathTest {
     @Test
     public void assertPrivilegeConstructor(){
         // information (database / information)
-        Privilege privilege = new Privilege();
-        assertThat(privilege.getPrivilegeInformation(),is("*.*.*"));
-        Privilege privilege1 = new Privilege("testDB");
-        assertThat(privilege1.getPrivilegeInformation(),is("testDB.*.*"));
-        Privilege privilege2 = new Privilege("testDB.testTable");
-        assertThat(privilege2.getPrivilegeInformation(),is("testDB.testTable.*"));
-        Privilege privilege3 = new Privilege("testDB.testTable.col1;col2");
-        assertThat(privilege3.getPrivilegeInformation(),is("testDB.testTable.col1;col2"));
-        Privilege privilege4 = new Privilege("testDB");
-        assertThat(privilege4.getPrivilegeInformation(),is("testDB.*.*"));
+        PrivilegePath privilegePath = new PrivilegePath();
+        assertThat(privilegePath.getPrivilegeInformation(),is("*.*.*"));
+        PrivilegePath privilegePath1 = new PrivilegePath("testDB");
+        assertThat(privilegePath1.getPrivilegeInformation(),is("testDB.*.*"));
+        PrivilegePath privilegePath2 = new PrivilegePath("testDB.testTable");
+        assertThat(privilegePath2.getPrivilegeInformation(),is("testDB.testTable.*"));
+        PrivilegePath privilegePath3 = new PrivilegePath("testDB.testTable.col1;col2");
+        assertThat(privilegePath3.getPrivilegeInformation(),is("testDB.testTable.col1;col2"));
+        PrivilegePath privilegePath4 = new PrivilegePath("testDB");
+        assertThat(privilegePath4.getPrivilegeInformation(),is("testDB.*.*"));
         // database table
-        Privilege privilege5 = new Privilege("testDB","testTable");
-        assertThat(privilege5.getPrivilegeInformation(),is("testDB.testTable.*"));
+        PrivilegePath privilegePath5 = new PrivilegePath("testDB","testTable");
+        assertThat(privilegePath5.getPrivilegeInformation(),is("testDB.testTable.*"));
         // database table cols
         List<String> cols = new LinkedList<>();cols.add("col1");cols.add("col2");
-        Privilege privilege6 = new Privilege("testDB","testTable",cols);
-        assertThat(privilege6.getPrivilegeInformation(),is("testDB.testTable.col1;col2"));
+        PrivilegePath privilegePath6 = new PrivilegePath("testDB","testTable",cols);
+        assertThat(privilegePath6.getPrivilegeInformation(),is("testDB.testTable.col1;col2"));
     }
 
     @Test
     public void assertPrivilegeEquals(){
-        Privilege privilege1 = new Privilege("testDB.testTable")
-                ,privilege2 = new Privilege("testDB.testTable")
-                ,privilege3 = new Privilege("testDB.testTable_diff")
-                ,privilege4 = new Privilege("testDB .testTable")
-                ,privilege5 = new Privilege("testDB. testTable");
-        assertThat(privilege1.equals(privilege2),is(true));
-        assertThat(privilege1.equals(privilege3),is(false));
-        assertThat(privilege1.equals(privilege4),is(true));
-        assertThat(privilege1.equals(privilege5),is(true));
-        assertThat(privilege4.equals(privilege5),is(true));
-        assertThat(privilege1.hashCode() == privilege2.hashCode(),is(true));
-        assertThat(privilege1.hashCode() == privilege3.hashCode(),is(false));
-        assertThat(privilege1.hashCode() == privilege4.hashCode(),is(true));
-        assertThat(privilege1.hashCode() == privilege5.hashCode(),is(true));
-        assertThat(privilege4.hashCode() == privilege5.hashCode(),is(true));
+        PrivilegePath privilegePath1 = new PrivilegePath("testDB.testTable")
+                , privilegePath2 = new PrivilegePath("testDB.testTable")
+                , privilegePath3 = new PrivilegePath("testDB.testTable_diff")
+                , privilegePath4 = new PrivilegePath("testDB .testTable")
+                , privilegePath5 = new PrivilegePath("testDB. testTable");
+        assertThat(privilegePath1.equals(privilegePath2),is(true));
+        assertThat(privilegePath1.equals(privilegePath3),is(false));
+        assertThat(privilegePath1.equals(privilegePath4),is(true));
+        assertThat(privilegePath1.equals(privilegePath5),is(true));
+        assertThat(privilegePath4.equals(privilegePath5),is(true));
+        assertThat(privilegePath1.hashCode() == privilegePath2.hashCode(),is(true));
+        assertThat(privilegePath1.hashCode() == privilegePath3.hashCode(),is(false));
+        assertThat(privilegePath1.hashCode() == privilegePath4.hashCode(),is(true));
+        assertThat(privilegePath1.hashCode() == privilegePath5.hashCode(),is(true));
+        assertThat(privilegePath4.hashCode() == privilegePath5.hashCode(),is(true));
     }
 
     @Test
     public void assertContainPlace(){
-        Privilege privilege1, privilege2, privilege3, privilege4;
+        PrivilegePath privilegePath1, privilegePath2, privilegePath3, privilegePath4;
         // information (database)
-        privilege1 = new Privilege();
-        privilege2 = new Privilege("testDB");
-        privilege3 = new Privilege("testDB.testTable");
-        privilege4 = new Privilege("testDB.testTable.col1;col2");
-        assertThat(privilege1.containsTargetPlace("testDB"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB_false"),is(true));
-        assertThat(privilege2.containsTargetPlace("testDB"),is(true));
-        assertThat(privilege2.containsTargetPlace("testDB_false"),is(false));
-        assertThat(privilege3.containsTargetPlace("testDB"),is(false));
-        assertThat(privilege3.containsTargetPlace("testDB_false"),is(false));
+        privilegePath1 = new PrivilegePath();
+        privilegePath2 = new PrivilegePath("testDB");
+        privilegePath3 = new PrivilegePath("testDB.testTable");
+        privilegePath4 = new PrivilegePath("testDB.testTable.col1;col2");
+        assertThat(privilegePath1.containsTargetPlace("testDB"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB_false"),is(true));
+        assertThat(privilegePath2.containsTargetPlace("testDB"),is(true));
+        assertThat(privilegePath2.containsTargetPlace("testDB_false"),is(false));
+        assertThat(privilegePath3.containsTargetPlace("testDB"),is(false));
+        assertThat(privilegePath3.containsTargetPlace("testDB_false"),is(false));
         // table
-        assertThat(privilege3.containsTargetPlace("testDB","testTable"),is(true));
-        assertThat(privilege3.containsTargetPlace("testDB","testTable_false"),is(false));
-        assertThat(privilege3.containsTargetPlace("testDB.testTable"),is(true));
-        assertThat(privilege3.containsTargetPlace("testDB.testTable_false"),is(false));
+        assertThat(privilegePath3.containsTargetPlace("testDB","testTable"),is(true));
+        assertThat(privilegePath3.containsTargetPlace("testDB","testTable_false"),is(false));
+        assertThat(privilegePath3.containsTargetPlace("testDB.testTable"),is(true));
+        assertThat(privilegePath3.containsTargetPlace("testDB.testTable_false"),is(false));
 
-        assertThat(privilege1.containsTargetPlace("testDB","testTable"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB","testTable_false"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB_false","testTable"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB_false","testTable_false"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB.testTable"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB.testTable_false"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB_false.testTable"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB_false.testTable_false"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB","testTable"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB","testTable_false"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB_false","testTable"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB_false","testTable_false"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB.testTable"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB.testTable_false"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB_false.testTable"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB_false.testTable_false"),is(true));
 
-        assertThat(privilege2.containsTargetPlace("testDB","testTable"),is(true));
-        assertThat(privilege2.containsTargetPlace("testDB","testTable_false"),is(true));
-        assertThat(privilege2.containsTargetPlace("testDB_false","testTable"),is(false));
-        assertThat(privilege2.containsTargetPlace("testDB_false","testTable_false"),is(false));
-        assertThat(privilege2.containsTargetPlace("testDB.testTable"),is(true));
-        assertThat(privilege2.containsTargetPlace("testDB.testTable_false"),is(true));
-        assertThat(privilege2.containsTargetPlace("testDB_false.testTable"),is(false));
-        assertThat(privilege2.containsTargetPlace("testDB_false.testTable_false"),is(false));
+        assertThat(privilegePath2.containsTargetPlace("testDB","testTable"),is(true));
+        assertThat(privilegePath2.containsTargetPlace("testDB","testTable_false"),is(true));
+        assertThat(privilegePath2.containsTargetPlace("testDB_false","testTable"),is(false));
+        assertThat(privilegePath2.containsTargetPlace("testDB_false","testTable_false"),is(false));
+        assertThat(privilegePath2.containsTargetPlace("testDB.testTable"),is(true));
+        assertThat(privilegePath2.containsTargetPlace("testDB.testTable_false"),is(true));
+        assertThat(privilegePath2.containsTargetPlace("testDB_false.testTable"),is(false));
+        assertThat(privilegePath2.containsTargetPlace("testDB_false.testTable_false"),is(false));
 
-        assertThat(privilege3.containsTargetPlace("testDB","testTable"),is(true));
-        assertThat(privilege3.containsTargetPlace("testDB","testTable_false"),is(false));
-        assertThat(privilege3.containsTargetPlace("testDB_false","testTable"),is(false));
-        assertThat(privilege3.containsTargetPlace("testDB_false","testTable_false"),is(false));
-        assertThat(privilege3.containsTargetPlace("testDB.testTable"),is(true));
-        assertThat(privilege3.containsTargetPlace("testDB.testTable_false"),is(false));
-        assertThat(privilege3.containsTargetPlace("testDB_false.testTable"),is(false));
-        assertThat(privilege3.containsTargetPlace("testDB_false.testTable_false"),is(false));
+        assertThat(privilegePath3.containsTargetPlace("testDB","testTable"),is(true));
+        assertThat(privilegePath3.containsTargetPlace("testDB","testTable_false"),is(false));
+        assertThat(privilegePath3.containsTargetPlace("testDB_false","testTable"),is(false));
+        assertThat(privilegePath3.containsTargetPlace("testDB_false","testTable_false"),is(false));
+        assertThat(privilegePath3.containsTargetPlace("testDB.testTable"),is(true));
+        assertThat(privilegePath3.containsTargetPlace("testDB.testTable_false"),is(false));
+        assertThat(privilegePath3.containsTargetPlace("testDB_false.testTable"),is(false));
+        assertThat(privilegePath3.containsTargetPlace("testDB_false.testTable_false"),is(false));
 
-        assertThat(privilege4.containsTargetPlace("testDB","testTable"),is(false));
-        assertThat(privilege4.containsTargetPlace("testDB","testTable_false"),is(false));
-        assertThat(privilege4.containsTargetPlace("testDB_false","testTable"),is(false));
-        assertThat(privilege4.containsTargetPlace("testDB_false","testTable_false"),is(false));
-        assertThat(privilege4.containsTargetPlace("testDB.testTable"),is(false));
-        assertThat(privilege4.containsTargetPlace("testDB.testTable_false"),is(false));
-        assertThat(privilege4.containsTargetPlace("testDB_false.testTable"),is(false));
-        assertThat(privilege4.containsTargetPlace("testDB_false.testTable_false"),is(false));
+        assertThat(privilegePath4.containsTargetPlace("testDB","testTable"),is(false));
+        assertThat(privilegePath4.containsTargetPlace("testDB","testTable_false"),is(false));
+        assertThat(privilegePath4.containsTargetPlace("testDB_false","testTable"),is(false));
+        assertThat(privilegePath4.containsTargetPlace("testDB_false","testTable_false"),is(false));
+        assertThat(privilegePath4.containsTargetPlace("testDB.testTable"),is(false));
+        assertThat(privilegePath4.containsTargetPlace("testDB.testTable_false"),is(false));
+        assertThat(privilegePath4.containsTargetPlace("testDB_false.testTable"),is(false));
+        assertThat(privilegePath4.containsTargetPlace("testDB_false.testTable_false"),is(false));
         // column
-        assertThat(privilege4.containsTargetPlace("testDB","testTable","col1"),is(true));
-        assertThat(privilege4.containsTargetPlace("testDB","testTable","col1_false"),is(false));
-        assertThat(privilege4.containsTargetPlace("testDB.testTable.col1"),is(true));
-        assertThat(privilege4.containsTargetPlace("testDB.testTable.col1_false"),is(false));
+        assertThat(privilegePath4.containsTargetPlace("testDB","testTable","col1"),is(true));
+        assertThat(privilegePath4.containsTargetPlace("testDB","testTable","col1_false"),is(false));
+        assertThat(privilegePath4.containsTargetPlace("testDB.testTable.col1"),is(true));
+        assertThat(privilegePath4.containsTargetPlace("testDB.testTable.col1_false"),is(false));
 
-        assertThat(privilege1.containsTargetPlace("testDB","testTable","col1"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB","testTable","col_false"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB","testTable_false","col1"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB","testTable_false","col1_false"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB_false","testTable","col1"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB_false","testTable","col1_false"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB_false","testTable_false","col1"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB_false","testTable_false","col1_false"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB.testTable.col1"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB.testTable.col_false"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB.testTable_false.col1"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB.testTable_false.col1_false"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB_false.testTable.col1"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB_false.testTable.col1_false"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB_false.testTable_false.col1"),is(true));
-        assertThat(privilege1.containsTargetPlace("testDB_false.testTable_false.col1_false"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB","testTable","col1"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB","testTable","col_false"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB","testTable_false","col1"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB","testTable_false","col1_false"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB_false","testTable","col1"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB_false","testTable","col1_false"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB_false","testTable_false","col1"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB_false","testTable_false","col1_false"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB.testTable.col1"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB.testTable.col_false"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB.testTable_false.col1"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB.testTable_false.col1_false"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB_false.testTable.col1"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB_false.testTable.col1_false"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB_false.testTable_false.col1"),is(true));
+        assertThat(privilegePath1.containsTargetPlace("testDB_false.testTable_false.col1_false"),is(true));
 
-        assertThat(privilege2.containsTargetPlace("testDB","testTable","col1"),is(true));
-        assertThat(privilege2.containsTargetPlace("testDB","testTable","col_false"),is(true));
-        assertThat(privilege2.containsTargetPlace("testDB","testTable_false","col1"),is(true));
-        assertThat(privilege2.containsTargetPlace("testDB","testTable_false","col1_false"),is(true));
-        assertThat(privilege2.containsTargetPlace("testDB_false","testTable","col1"),is(false));
-        assertThat(privilege2.containsTargetPlace("testDB_false","testTable","col1_false"),is(false));
-        assertThat(privilege2.containsTargetPlace("testDB_false","testTable_false","col1"),is(false));
-        assertThat(privilege2.containsTargetPlace("testDB_false","testTable_false","col1_false"),is(false));
+        assertThat(privilegePath2.containsTargetPlace("testDB","testTable","col1"),is(true));
+        assertThat(privilegePath2.containsTargetPlace("testDB","testTable","col_false"),is(true));
+        assertThat(privilegePath2.containsTargetPlace("testDB","testTable_false","col1"),is(true));
+        assertThat(privilegePath2.containsTargetPlace("testDB","testTable_false","col1_false"),is(true));
+        assertThat(privilegePath2.containsTargetPlace("testDB_false","testTable","col1"),is(false));
+        assertThat(privilegePath2.containsTargetPlace("testDB_false","testTable","col1_false"),is(false));
+        assertThat(privilegePath2.containsTargetPlace("testDB_false","testTable_false","col1"),is(false));
+        assertThat(privilegePath2.containsTargetPlace("testDB_false","testTable_false","col1_false"),is(false));
 
-        assertThat(privilege3.containsTargetPlace("testDB","testTable","col1"),is(true));
-        assertThat(privilege3.containsTargetPlace("testDB","testTable","col_false"),is(true));
-        assertThat(privilege3.containsTargetPlace("testDB","testTable_false","col1"),is(false));
-        assertThat(privilege3.containsTargetPlace("testDB","testTable_false","col1_false"),is(false));
-        assertThat(privilege3.containsTargetPlace("testDB_false","testTable","col1"),is(false));
-        assertThat(privilege3.containsTargetPlace("testDB_false","testTable","col1_false"),is(false));
-        assertThat(privilege3.containsTargetPlace("testDB_false","testTable_false","col1"),is(false));
-        assertThat(privilege3.containsTargetPlace("testDB_false","testTable_false","col1_false"),is(false));
+        assertThat(privilegePath3.containsTargetPlace("testDB","testTable","col1"),is(true));
+        assertThat(privilegePath3.containsTargetPlace("testDB","testTable","col_false"),is(true));
+        assertThat(privilegePath3.containsTargetPlace("testDB","testTable_false","col1"),is(false));
+        assertThat(privilegePath3.containsTargetPlace("testDB","testTable_false","col1_false"),is(false));
+        assertThat(privilegePath3.containsTargetPlace("testDB_false","testTable","col1"),is(false));
+        assertThat(privilegePath3.containsTargetPlace("testDB_false","testTable","col1_false"),is(false));
+        assertThat(privilegePath3.containsTargetPlace("testDB_false","testTable_false","col1"),is(false));
+        assertThat(privilegePath3.containsTargetPlace("testDB_false","testTable_false","col1_false"),is(false));
 
-        assertThat(privilege4.containsTargetPlace("testDB","testTable","col1"),is(true));
-        assertThat(privilege4.containsTargetPlace("testDB","testTable","col_false"),is(false));
-        assertThat(privilege4.containsTargetPlace("testDB","testTable_false","col1"),is(false));
-        assertThat(privilege4.containsTargetPlace("testDB","testTable_false","col1_false"),is(false));
-        assertThat(privilege4.containsTargetPlace("testDB_false","testTable","col1"),is(false));
-        assertThat(privilege4.containsTargetPlace("testDB_false","testTable","col1_false"),is(false));
-        assertThat(privilege4.containsTargetPlace("testDB_false","testTable_false","col1"),is(false));
-        assertThat(privilege4.containsTargetPlace("testDB_false","testTable_false","col1_false"),is(false));
+        assertThat(privilegePath4.containsTargetPlace("testDB","testTable","col1"),is(true));
+        assertThat(privilegePath4.containsTargetPlace("testDB","testTable","col_false"),is(false));
+        assertThat(privilegePath4.containsTargetPlace("testDB","testTable_false","col1"),is(false));
+        assertThat(privilegePath4.containsTargetPlace("testDB","testTable_false","col1_false"),is(false));
+        assertThat(privilegePath4.containsTargetPlace("testDB_false","testTable","col1"),is(false));
+        assertThat(privilegePath4.containsTargetPlace("testDB_false","testTable","col1_false"),is(false));
+        assertThat(privilegePath4.containsTargetPlace("testDB_false","testTable_false","col1"),is(false));
+        assertThat(privilegePath4.containsTargetPlace("testDB_false","testTable_false","col1_false"),is(false));
     }
 }
