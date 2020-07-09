@@ -3,10 +3,9 @@ package org.apache.shardingsphere.proxy.backend.privilege;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
+import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegeConfiguration;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Privilege model.
@@ -14,7 +13,14 @@ import java.util.Objects;
 @Getter
 @Setter
 public class PrivilegeModel {
+
     public final static int INITIAL_PRIVILEGE_LENGTH = 8;
+
+    public final static String PRIVILEGE_TYPE_INSERT = "insert"
+            , PRIVILEGE_TYPE_DELETE = "delete"
+            , PRIVILEGE_TYPE_SELECT = "select"
+            , PRIVILEGE_TYPE_UPDATE = "update";
+
     // grant create delete(drop) update select
     protected HashSet<PrivilegePath> grantPrivilegePaths = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH)
             , insertPrivilegePaths = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH)
@@ -22,17 +28,44 @@ public class PrivilegeModel {
             , updatePrivilegePaths = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH)
             , selectPrivilegePaths = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH);
 
+    protected void constructPrivileges(YamlPrivilegeConfiguration yamlPrivilegeConfiguration){
+        // insert
+        Iterator<String> iterator = yamlPrivilegeConfiguration.getInsert().iterator();
+        while (iterator.hasNext()){
+            String curInformation = iterator.next();
+            this.addPrivilege(PRIVILEGE_TYPE_INSERT,curInformation);
+        }
+        // delete
+        iterator = yamlPrivilegeConfiguration.getDelete().iterator();
+        while (iterator.hasNext()){
+            String curInformation = iterator.next();
+            this.addPrivilege(PRIVILEGE_TYPE_DELETE,curInformation);
+        }
+        // select
+        iterator = yamlPrivilegeConfiguration.getSelect().iterator();
+        while (iterator.hasNext()){
+            String curInformation = iterator.next();
+            this.addPrivilege(PRIVILEGE_TYPE_SELECT,curInformation);
+        }
+        // update
+        iterator = yamlPrivilegeConfiguration.getUpdate().iterator();
+        while (iterator.hasNext()){
+            String curInformation = iterator.next();
+            this.addPrivilege(PRIVILEGE_TYPE_UPDATE,curInformation);
+        }
+    }
+
     protected HashSet<PrivilegePath> chosePrivilegeType(String privilegeType){
         switch (privilegeType){
             case "grant":
                 return this.getGrantPrivilegePaths();
-            case "create":
+            case PRIVILEGE_TYPE_INSERT:
                 return this.getInsertPrivilegePaths();
-            case "delete":
+            case PRIVILEGE_TYPE_DELETE:
                 return this.getDeletePrivilegePaths();
-            case "update":
+            case PRIVILEGE_TYPE_UPDATE:
                 return this.getUpdatePrivilegePaths();
-            case "select":
+            case PRIVILEGE_TYPE_SELECT:
                 return this.getSelectPrivilegePaths();
             default:
                 throw new ShardingSphereException("Can not match privilege type");

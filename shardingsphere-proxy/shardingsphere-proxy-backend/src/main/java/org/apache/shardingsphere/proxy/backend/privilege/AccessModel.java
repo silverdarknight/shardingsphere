@@ -4,14 +4,39 @@ import lombok.Getter;
 import org.apache.shardingsphere.proxy.backend.privilege.impl.RolePrivilege;
 import org.apache.shardingsphere.proxy.backend.privilege.impl.UserPrivilege;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
+import org.apache.shardingsphere.proxy.config.yaml.YamlAccessModel;
+import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegeConfiguration;
+import org.apache.shardingsphere.proxy.config.yaml.YamlUserPrivilegeConfiguration;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 @Getter
 public class AccessModel {
+    public AccessModel(YamlAccessModel yamlAccessModel){
+        // role
+        Iterator<Map.Entry<String, YamlPrivilegeConfiguration>> roleIterator =  yamlAccessModel.getRoleList().entrySet().iterator();
+        while (roleIterator.hasNext()){
+            Map.Entry<String, YamlPrivilegeConfiguration> kv = roleIterator.next();
+            RolePrivilege tmpRolePrivilege = new RolePrivilege(kv.getKey());
+            tmpRolePrivilege.constructPrivileges(kv.getValue());
+            this.addRole(tmpRolePrivilege);
+        }
+        //user
+        Iterator<Map.Entry<String, YamlUserPrivilegeConfiguration>> userIterator =  yamlAccessModel.getUserList().entrySet().iterator();
+        while (userIterator.hasNext()){
+            Map.Entry<String, YamlUserPrivilegeConfiguration> kv = userIterator.next();
+            YamlUserPrivilegeConfiguration curConfig = kv.getValue();
+            UserPrivilege tmpUserPrivilege = new UserPrivilege(kv.getKey(),curConfig.getPassword());
+            Iterator<String> roleNamesIterator = curConfig.getRoles().iterator();
+            while (roleNamesIterator.hasNext()){
+                String roleName = roleNamesIterator.next();
+                tmpUserPrivilege.grant(this.getRole(roleName));
+            }
+            tmpUserPrivilege.constructPrivileges(curConfig.getPrivileges());
+            this.addUser(tmpUserPrivilege);
+        }
+    }
+
     private HashSet<UserPrivilege> usersPrivilege = new HashSet<>();
 
     private HashSet<RolePrivilege> rolesPrivileges = new HashSet<>();
