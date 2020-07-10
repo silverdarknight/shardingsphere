@@ -16,11 +16,6 @@ public class PrivilegeModel {
 
     public final static int INITIAL_PRIVILEGE_LENGTH = 8;
 
-    public final static String PRIVILEGE_TYPE_INSERT = "insert"
-            , PRIVILEGE_TYPE_DELETE = "delete"
-            , PRIVILEGE_TYPE_SELECT = "select"
-            , PRIVILEGE_TYPE_UPDATE = "update";
-
     // grant create delete(drop) update select
     protected HashSet<PrivilegePath> grantPrivilegePaths = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH)
             , insertPrivilegePaths = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH)
@@ -33,25 +28,25 @@ public class PrivilegeModel {
         Iterator<String> iterator = yamlPrivilegeConfiguration.getInsert().iterator();
         while (iterator.hasNext()){
             String curInformation = iterator.next();
-            this.addPrivilege(PRIVILEGE_TYPE_INSERT,curInformation);
+            this.addPrivilege(PrivilegeAction.PRIVILEGE_TYPE_INSERT,curInformation);
         }
         // delete
         iterator = yamlPrivilegeConfiguration.getDelete().iterator();
         while (iterator.hasNext()){
             String curInformation = iterator.next();
-            this.addPrivilege(PRIVILEGE_TYPE_DELETE,curInformation);
+            this.addPrivilege(PrivilegeAction.PRIVILEGE_TYPE_DELETE,curInformation);
         }
         // select
         iterator = yamlPrivilegeConfiguration.getSelect().iterator();
         while (iterator.hasNext()){
             String curInformation = iterator.next();
-            this.addPrivilege(PRIVILEGE_TYPE_SELECT,curInformation);
+            this.addPrivilege(PrivilegeAction.PRIVILEGE_TYPE_SELECT,curInformation);
         }
         // update
         iterator = yamlPrivilegeConfiguration.getUpdate().iterator();
         while (iterator.hasNext()){
             String curInformation = iterator.next();
-            this.addPrivilege(PRIVILEGE_TYPE_UPDATE,curInformation);
+            this.addPrivilege(PrivilegeAction.PRIVILEGE_TYPE_UPDATE,curInformation);
         }
     }
 
@@ -59,13 +54,13 @@ public class PrivilegeModel {
         switch (privilegeType){
             case "grant":
                 return this.getGrantPrivilegePaths();
-            case PRIVILEGE_TYPE_INSERT:
+            case PrivilegeAction.PRIVILEGE_TYPE_INSERT:
                 return this.getInsertPrivilegePaths();
-            case PRIVILEGE_TYPE_DELETE:
+            case PrivilegeAction.PRIVILEGE_TYPE_DELETE:
                 return this.getDeletePrivilegePaths();
-            case PRIVILEGE_TYPE_UPDATE:
+            case PrivilegeAction.PRIVILEGE_TYPE_UPDATE:
                 return this.getUpdatePrivilegePaths();
-            case PRIVILEGE_TYPE_SELECT:
+            case PrivilegeAction.PRIVILEGE_TYPE_SELECT:
                 return this.getSelectPrivilegePaths();
             default:
                 throw new ShardingSphereException("Can not match privilege type");
