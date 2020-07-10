@@ -14,7 +14,10 @@ public final class PrivilegeAction {
 
     @Getter
     @Setter
-    private String userName;
+    private String name;
+
+    @Setter
+    private Boolean isUser;
 
     @Getter
     @Setter
@@ -27,7 +30,7 @@ public final class PrivilegeAction {
     private Boolean privilegePathValid = true;
 
     public PrivilegeAction(String userName, String actionType, String information){
-        this.setUserName(userName);
+        this.setName(userName);
         this.setGrantActionType(actionType.toLowerCase());
         try {
             this.setPath(new PrivilegePath(information));
@@ -38,7 +41,7 @@ public final class PrivilegeAction {
     }
 
     public PrivilegeAction(String userName, String actionType, String database, String table){
-        this.setUserName(userName);
+        this.setName(userName);
         this.setGrantActionType(actionType.toLowerCase());
         try {
             this.setPath(new PrivilegePath(database, table));
@@ -49,7 +52,7 @@ public final class PrivilegeAction {
     }
 
     public PrivilegeAction(String userName, String actionType, String database, String table, List<String> cols){
-        this.setUserName(userName);
+        this.setName(userName);
         this.setGrantActionType(actionType.toLowerCase());
         try {
             this.setPath(new PrivilegePath(database, table, cols));
@@ -59,11 +62,15 @@ public final class PrivilegeAction {
         }
     }
 
-    public Boolean isValid(){
+    public Boolean typeIsValid(){
         Boolean actionTypeValid = this.getGrantActionType().toLowerCase().equals(PrivilegeAction.PRIVILEGE_TYPE_DELETE)
                 || this.getGrantActionType().toLowerCase().equals(PrivilegeAction.PRIVILEGE_TYPE_INSERT)
                 || this.getGrantActionType().toLowerCase().equals(PrivilegeAction.PRIVILEGE_TYPE_SELECT)
                 || this.getGrantActionType().toLowerCase().equals(PrivilegeAction.PRIVILEGE_TYPE_UPDATE);
-        return actionTypeValid && privilegePathValid;
+        return actionTypeValid;
+    }
+
+    public Boolean isUser(){
+        return this.isUser;
     }
 }

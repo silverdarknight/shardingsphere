@@ -37,9 +37,9 @@ public class AccessModel {
         }
     }
 
-    private HashSet<UserPrivilege> usersPrivilege = new HashSet<>();
+    protected HashSet<UserPrivilege> usersPrivilege = new HashSet<>();
 
-    private HashSet<RolePrivilege> rolesPrivileges = new HashSet<>();
+    protected HashSet<RolePrivilege> rolesPrivileges = new HashSet<>();
 
     public void addUser(UserPrivilege userPrivilege){
         this.getUsersPrivilege().add(userPrivilege);
@@ -93,5 +93,12 @@ public class AccessModel {
             roles.add(this.getRole(curRoleName));
         }
         return roles;
+    }
+
+    public Boolean checkPrivilege(PrivilegeAction action){
+        PrivilegeExecutorWrapper privilegeExecutorWrapper = action.isUser()?
+                this.getUser(action.getName()):this.getRole(action.getName());
+        return privilegeExecutorWrapper.checkPrivilege(action.getGrantActionType()
+                , action.getPath().getPrivilegeInformation());
     }
 }
