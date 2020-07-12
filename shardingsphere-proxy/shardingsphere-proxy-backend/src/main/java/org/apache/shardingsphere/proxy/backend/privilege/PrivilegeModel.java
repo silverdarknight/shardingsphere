@@ -16,6 +16,28 @@ public class PrivilegeModel {
 
     public final static int INITIAL_PRIVILEGE_LENGTH = 8;
 
+    protected Boolean status = true;
+
+    public void disable(){
+        this.status = false;
+    }
+
+    public void available(){
+        this.status = true;
+    }
+
+    public Boolean isUsable(){
+        return this.status;
+    }
+
+    protected void preGrant(){
+        if(!isUsable()) throw new ShardingSphereException("This is not allowed to use");
+    }
+
+    protected void preRevoke(){
+        if(!isUsable()) throw new ShardingSphereException("This is not allowed to use");
+    }
+
     // grant create delete(drop) update select
     protected HashSet<PrivilegePath> grantPrivilegePaths = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH)
             , insertPrivilegePaths = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH)

@@ -3,6 +3,7 @@ package org.apache.shardingsphere.proxy.backend.privilege;
 import java.util.List;
 
 public class PrivilegeExecutor {
+
     private AccessModel accessModel;
 
     private ZKPrivilegeWatcher zkPrivilegeWatcher;

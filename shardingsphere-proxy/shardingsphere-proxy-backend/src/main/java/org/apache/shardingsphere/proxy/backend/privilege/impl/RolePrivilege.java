@@ -12,9 +12,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
-@Getter
-@Setter
+
 public class RolePrivilege extends PrivilegeModel implements PrivilegeExecutorWrapper {
+
+    @Getter
+    @Setter
     private String roleName;
 
     public RolePrivilege(String roleName){
@@ -23,6 +25,7 @@ public class RolePrivilege extends PrivilegeModel implements PrivilegeExecutorWr
 
     @Override
     public boolean checkPrivilege(String privilegeType, String information) {
+        if(!isUsable()) return false;
         HashSet<PrivilegePath> targetPrivilegePaths = this.chosePrivilegeType(privilegeType);
         String[] splitTargets = information.split("\\.");
         switch (splitTargets.length){
@@ -44,6 +47,7 @@ public class RolePrivilege extends PrivilegeModel implements PrivilegeExecutorWr
 
     @Override
     public boolean checkPrivilege(String privilegeType, String database, String table) {
+        if(!isUsable()) return false;
         HashSet<PrivilegePath> targetPrivilegePaths = this.chosePrivilegeType(privilegeType);
         Iterator<PrivilegePath> iterator = targetPrivilegePaths.iterator();
         while (iterator.hasNext()){
@@ -55,6 +59,7 @@ public class RolePrivilege extends PrivilegeModel implements PrivilegeExecutorWr
 
     @Override
     public boolean checkPrivilege(String privilegeType, String database, String table, String column) {
+        if(!isUsable()) return false;
         HashSet<PrivilegePath> targetPrivilegePaths = this.chosePrivilegeType(privilegeType);
         Iterator<PrivilegePath> iterator = targetPrivilegePaths.iterator();
         while (iterator.hasNext()){
@@ -64,26 +69,31 @@ public class RolePrivilege extends PrivilegeModel implements PrivilegeExecutorWr
         return false;
     }
 
+
     @Override
     public void grant(String privilegeType, String information) {
+        this.preGrant();
         PrivilegePath targetPrivilegePath = new PrivilegePath(information);
         this.addPrivilege(privilegeType, targetPrivilegePath);
     }
 
     @Override
     public void grant(String privilegeType, String database, String table) {
+        this.preGrant();
         PrivilegePath targetPrivilegePath = new PrivilegePath(database, table);
         this.addPrivilege(privilegeType, targetPrivilegePath);
     }
 
     @Override
     public void grant(String privilegeType, String database, String table, List<String> column) {
+        this.preGrant();
         PrivilegePath targetPrivilegePath = new PrivilegePath(database, table, column);
         this.addPrivilege(privilegeType, targetPrivilegePath);
     }
 
     @Override
     public void revoke(String privilegeType, String information) {
+        this.preRevoke();
         PrivilegePath privilegePath = new PrivilegePath(information);
         try{
             this.removePrivilege(privilegeType, privilegePath);
@@ -95,6 +105,7 @@ public class RolePrivilege extends PrivilegeModel implements PrivilegeExecutorWr
 
     @Override
     public void revoke(String privilegeType, String database, String table) {
+        this.preRevoke();
         PrivilegePath privilegePath = new PrivilegePath(database, table);
         try{
             this.removePrivilege(privilegeType, privilegePath);
@@ -106,6 +117,7 @@ public class RolePrivilege extends PrivilegeModel implements PrivilegeExecutorWr
 
     @Override
     public void revoke(String privilegeType, String database, String table, List<String> column) {
+        this.preRevoke();
         PrivilegePath privilegePath = new PrivilegePath(database, table, column);
         try{
             this.removePrivilege(privilegeType, privilegePath);

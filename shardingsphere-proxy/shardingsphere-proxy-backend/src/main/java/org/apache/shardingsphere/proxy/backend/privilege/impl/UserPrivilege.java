@@ -114,17 +114,20 @@ public class UserPrivilege extends PrivilegeModel implements PrivilegeExecutorWr
     }
 
     public void grant(RolePrivilege role){
+        this.preGrant();
         this.addRole(role);
     }
 
     @Override
     public void grant(String privilegeType, String information) {
+        this.preGrant();
         PrivilegePath targetPrivilegePath = new PrivilegePath(information);
         this.addPrivilege(privilegeType, targetPrivilegePath);
     }
 
     @Override
     public void grant(String privilegeType, String database, String table) {
+        this.preGrant();
         PrivilegePath targetPrivilegePath = new PrivilegePath(database, table);
         this.addPrivilege(privilegeType, targetPrivilegePath);
     }
@@ -136,11 +139,13 @@ public class UserPrivilege extends PrivilegeModel implements PrivilegeExecutorWr
     }
 
     public void revoke(RolePrivilege role){
+        this.preRevoke();
         this.removeRole(role);
     }
 
     @Override
     public void revoke(String privilegeType, String information) {
+        this.preRevoke();
         PrivilegePath privilegePath = new PrivilegePath(information);try{
             this.removePrivilege(privilegeType, privilegePath);
         }
@@ -151,6 +156,7 @@ public class UserPrivilege extends PrivilegeModel implements PrivilegeExecutorWr
 
     @Override
     public void revoke(String privilegeType, String database, String table) {
+        this.preRevoke();
         PrivilegePath privilegePath = new PrivilegePath(database, table);try{
             this.removePrivilege(privilegeType, privilegePath);
         }
@@ -161,6 +167,7 @@ public class UserPrivilege extends PrivilegeModel implements PrivilegeExecutorWr
 
     @Override
     public void revoke(String privilegeType, String database, String table, List<String> column) {
+        this.preRevoke();
         PrivilegePath privilegePath = new PrivilegePath(database, table, column);try{
             this.removePrivilege(privilegeType, privilegePath);
         }

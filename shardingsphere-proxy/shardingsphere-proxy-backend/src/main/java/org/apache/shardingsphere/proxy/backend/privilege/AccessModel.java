@@ -95,10 +95,23 @@ public class AccessModel {
         return roles;
     }
 
-    public Boolean checkPrivilege(PrivilegeAction action){
-        PrivilegeExecutorWrapper privilegeExecutorWrapper = action.isUser()?
-                this.getUser(action.getName()):this.getRole(action.getName());
-        return privilegeExecutorWrapper.checkPrivilege(action.getGrantActionType()
-                , action.getPath().getPrivilegeInformation());
+    public Boolean checkUserPrivilege(String userName, String type, String database){
+        UserPrivilege userPrivilege = this.getUser(userName);
+        return userPrivilege.checkPrivilege(type, database);
+    }
+
+    public Boolean checkUserPrivilege(String userName, String type, String database, String table){
+        UserPrivilege userPrivilege = this.getUser(userName);
+        return userPrivilege.checkPrivilege(type, database, table);
+    }
+
+    public Boolean checkUserPrivilege(String userName, String type, String database, List<String> cols){
+        UserPrivilege userPrivilege = this.getUser(userName);
+        Iterator<String> iterator = cols.iterator();
+        while (iterator.hasNext()){
+            String column = iterator.next();
+            if(!userPrivilege.checkPrivilege(type, database,column)) return false;
+        }
+        return true;
     }
 }
