@@ -15,10 +15,13 @@ import java.io.IOException;
 public class AccessModelTest {
     @Test
     public void constructTest() throws IOException {
-        File privilegeFile = new File(ShardingConfigurationLoader.class.getResource("/conf/" + "/" + "privilege.yaml").getFile());
+        File privilegeFile = new File(
+                ShardingConfigurationLoader.class.getResource("/conf/" + "/" + "privilege.yaml")
+                        .getFile());
         YamlAccessModel yamlAccessModel = YamlEngine.unmarshal(privilegeFile, YamlAccessModel.class);
         AccessModel accessModel = new AccessModel(yamlAccessModel);
         assertThat(accessModel.getRolesPrivileges().size(),is(2));
         assertThat(accessModel.getUsersPrivilege().size(),is(2));
+        assertThat(accessModel.getUserPrivilege("user1").getUserInformation().getUserName(),is("user1"));
     }
 }
