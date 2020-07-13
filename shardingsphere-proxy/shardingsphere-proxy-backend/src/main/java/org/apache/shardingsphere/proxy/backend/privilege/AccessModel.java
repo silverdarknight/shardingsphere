@@ -51,19 +51,13 @@ public class AccessModel implements AccessExecutorWrapper{
 
     private Map<String, RolePrivilege> rolesPrivileges = new HashMap<>();
 
-    private Collection<UserInformation> userInformation = new HashSet<>();
+    private Map<String, UserInformation> userInformationMap = new HashMap<>();
 
     private Collection<UserInformation> validUserGroup = new HashSet<>();
 
     // search
     public Boolean containsUser(String userName){
-        userName = userName.trim();
-        Iterator<UserInformation> iterator = this.getUserInformation().iterator();
-        while (iterator.hasNext()){
-            UserInformation curUserInformation = iterator.next();
-            if(curUserInformation.getUserName().equals(userName)) return true;
-        }
-        return false;
+        return userInformationMap.containsKey(userName);
     }
 
     public Boolean containsUserPrivilege(String userName){
@@ -90,12 +84,9 @@ public class AccessModel implements AccessExecutorWrapper{
     }
 
     public UserInformation getUser(String userName){
-        Iterator<UserInformation> iterator = this.getUserInformation().iterator();
-        while (iterator.hasNext()){
-            UserInformation curUserInformation = iterator.next();
-            if(curUserInformation.getUserName().equals(userName)) return curUserInformation;
-        }
-        throw new ShardingSphereException("No such user named :" + userName);
+        if(!this.getUserInformationMap().containsKey(userName))
+            throw new ShardingSphereException("No such user named :" + userName);
+        return this.getUserInformationMap().get(userName);
     }
 
     public Collection<UserInformation> getUser(List<String> userNames){
@@ -109,7 +100,6 @@ public class AccessModel implements AccessExecutorWrapper{
     }
 
     public UserPrivilege getUserPrivilege(String userName){
-        userName = userName.trim();
         UserInformation userInformation = this.getUser(userName);
         UserPrivilege userPrivilege = this.getUsersPrivilege().get(userInformation);
         if(userPrivilege == null)
@@ -150,7 +140,7 @@ public class AccessModel implements AccessExecutorWrapper{
         if(this.containsUser(userName))
             throw new ShardingSphereException("Already has a user called : " + userName);
         UserInformation userInformation = new UserInformation(userName, password);
-        this.getUserInformation().add(userInformation);
+        this.getUserInformationMap().put(userName, userInformation);
         return userInformation;
     }
 
