@@ -5,9 +5,10 @@ import lombok.Setter;
 
 import java.util.List;
 
+
+@Getter
 public final class PrivilegeAction {
 
-    @Getter
     @Setter
     private String name;
 
