@@ -3,24 +3,19 @@ package org.apache.shardingsphere.proxy.backend.privilege.impl;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.shardingsphere.proxy.backend.privilege.PrivilegePath;
-import org.apache.shardingsphere.proxy.backend.privilege.PrivilegeExecutorWrapper;
 import org.apache.shardingsphere.proxy.backend.privilege.PrivilegeModel;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
 
 import java.util.*;
 
-public class UserPrivilege extends PrivilegeModel implements PrivilegeExecutorWrapper {
-    @Getter
-    @Setter
-    private String userName;
+public class UserPrivilege extends PrivilegeModel {
 
     @Getter
     @Setter
-    private String password;
+    private UserInformation userInformation;
 
-    public UserPrivilege(String userName, String password){
-        this.setUserName(userName);
-        this.setPassword(password);
+    public UserPrivilege(UserInformation userInformation){
+        this.setUserInformation(userInformation);
     }
 
     private HashSet<RolePrivilege> roles = new HashSet<>();
@@ -114,20 +109,17 @@ public class UserPrivilege extends PrivilegeModel implements PrivilegeExecutorWr
     }
 
     public void grant(RolePrivilege role){
-        this.preGrant();
         this.addRole(role);
     }
 
     @Override
     public void grant(String privilegeType, String information) {
-        this.preGrant();
         PrivilegePath targetPrivilegePath = new PrivilegePath(information);
         this.addPrivilege(privilegeType, targetPrivilegePath);
     }
 
     @Override
     public void grant(String privilegeType, String database, String table) {
-        this.preGrant();
         PrivilegePath targetPrivilegePath = new PrivilegePath(database, table);
         this.addPrivilege(privilegeType, targetPrivilegePath);
     }
@@ -139,40 +131,37 @@ public class UserPrivilege extends PrivilegeModel implements PrivilegeExecutorWr
     }
 
     public void revoke(RolePrivilege role){
-        this.preRevoke();
         this.removeRole(role);
     }
 
     @Override
     public void revoke(String privilegeType, String information) {
-        this.preRevoke();
         PrivilegePath privilegePath = new PrivilegePath(information);try{
             this.removePrivilege(privilegeType, privilegePath);
         }
         catch (Exception e){
-            throw new ShardingSphereException("there is no such grant defined for role '"+this.getUserName());
+            throw new ShardingSphereException("there is no such grant defined for role '"
+                    + this.getUserInformation().getUserName());
         }
     }
 
     @Override
     public void revoke(String privilegeType, String database, String table) {
-        this.preRevoke();
         PrivilegePath privilegePath = new PrivilegePath(database, table);try{
             this.removePrivilege(privilegeType, privilegePath);
         }
         catch (Exception e){
-            throw new ShardingSphereException("there is no such grant defined for role '"+this.getUserName());
+            throw new ShardingSphereException("there is no such grant defined for role '"+this.getUserInformation().getUserName());
         }
     }
 
     @Override
     public void revoke(String privilegeType, String database, String table, List<String> column) {
-        this.preRevoke();
         PrivilegePath privilegePath = new PrivilegePath(database, table, column);try{
             this.removePrivilege(privilegeType, privilegePath);
         }
         catch (Exception e){
-            throw new ShardingSphereException("there is no such grant defined for role '"+this.getUserName());
+            throw new ShardingSphereException("there is no such grant defined for role '"+this.getUserInformation().getUserName());
         }
     }
 
@@ -182,14 +171,13 @@ public class UserPrivilege extends PrivilegeModel implements PrivilegeExecutorWr
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         UserPrivilege that = (UserPrivilege) o;
-        return Objects.equals(userName, that.userName) &&
-                Objects.equals(password, that.password) &&
+        return Objects.equals(this.getUserInformation(), that.getUserInformation()) &&
                 Objects.equals(roles, that.roles) &&
                 super.equals(that);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), userName, password, roles);
+        return Objects.hash(super.hashCode(), this.getUserInformation(), roles);
     }
 }

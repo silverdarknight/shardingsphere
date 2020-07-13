@@ -3,6 +3,7 @@ package org.apache.shardingsphere.proxy.backend.privilege;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
+import org.apache.shardingsphere.proxy.backend.privilege.impl.RolePrivilege;
 import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegeConfiguration;
 
 import java.util.*;
@@ -12,31 +13,9 @@ import java.util.*;
  */
 @Getter
 @Setter
-public class PrivilegeModel {
+public abstract class PrivilegeModel {
 
     public final static int INITIAL_PRIVILEGE_LENGTH = 8;
-
-    protected Boolean status = true;
-
-    public void disable(){
-        this.status = false;
-    }
-
-    public void available(){
-        this.status = true;
-    }
-
-    public Boolean isUsable(){
-        return this.status;
-    }
-
-    protected void preGrant(){
-        if(!isUsable()) throw new ShardingSphereException("This is not allowed to use");
-    }
-
-    protected void preRevoke(){
-        if(!isUsable()) throw new ShardingSphereException("This is not allowed to use");
-    }
 
     // grant create delete(drop) update select
     protected HashSet<PrivilegePath> grantPrivilegePaths = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH)
@@ -50,25 +29,25 @@ public class PrivilegeModel {
         Iterator<String> iterator = yamlPrivilegeConfiguration.getInsert().iterator();
         while (iterator.hasNext()){
             String curInformation = iterator.next();
-            this.addPrivilege(PrivilegeAction.PRIVILEGE_TYPE_INSERT,curInformation);
+            this.addPrivilege(AccessModel.PRIVILEGE_TYPE_INSERT,curInformation);
         }
         // delete
         iterator = yamlPrivilegeConfiguration.getDelete().iterator();
         while (iterator.hasNext()){
             String curInformation = iterator.next();
-            this.addPrivilege(PrivilegeAction.PRIVILEGE_TYPE_DELETE,curInformation);
+            this.addPrivilege(AccessModel.PRIVILEGE_TYPE_DELETE,curInformation);
         }
         // select
         iterator = yamlPrivilegeConfiguration.getSelect().iterator();
         while (iterator.hasNext()){
             String curInformation = iterator.next();
-            this.addPrivilege(PrivilegeAction.PRIVILEGE_TYPE_SELECT,curInformation);
+            this.addPrivilege(AccessModel.PRIVILEGE_TYPE_SELECT,curInformation);
         }
         // update
         iterator = yamlPrivilegeConfiguration.getUpdate().iterator();
         while (iterator.hasNext()){
             String curInformation = iterator.next();
-            this.addPrivilege(PrivilegeAction.PRIVILEGE_TYPE_UPDATE,curInformation);
+            this.addPrivilege(AccessModel.PRIVILEGE_TYPE_UPDATE,curInformation);
         }
     }
 
@@ -76,13 +55,13 @@ public class PrivilegeModel {
         switch (privilegeType){
             case "grant":
                 return this.getGrantPrivilegePaths();
-            case PrivilegeAction.PRIVILEGE_TYPE_INSERT:
+            case AccessModel.PRIVILEGE_TYPE_INSERT:
                 return this.getInsertPrivilegePaths();
-            case PrivilegeAction.PRIVILEGE_TYPE_DELETE:
+            case AccessModel.PRIVILEGE_TYPE_DELETE:
                 return this.getDeletePrivilegePaths();
-            case PrivilegeAction.PRIVILEGE_TYPE_UPDATE:
+            case AccessModel.PRIVILEGE_TYPE_UPDATE:
                 return this.getUpdatePrivilegePaths();
-            case PrivilegeAction.PRIVILEGE_TYPE_SELECT:
+            case AccessModel.PRIVILEGE_TYPE_SELECT:
                 return this.getSelectPrivilegePaths();
             default:
                 throw new ShardingSphereException("Can not match privilege type");
@@ -127,4 +106,22 @@ public class PrivilegeModel {
     public int hashCode() {
         return Objects.hash(grantPrivilegePaths, insertPrivilegePaths, deletePrivilegePaths, updatePrivilegePaths, selectPrivilegePaths);
     }
+
+    public abstract boolean checkPrivilege(String privilegeType, String database, String table, String column);
+
+    public abstract boolean checkPrivilege(String privilegeType, String database, String table);
+
+    public abstract boolean checkPrivilege(String privilegeType, String information);
+
+    public abstract void grant(String privilegeType, String information);
+
+    public abstract void grant(String privilegeType, String database, String table);
+
+    public abstract void grant(String privilegeType, String database, String table, List<String> column);
+
+    public abstract void revoke(String privilegeType, String database);
+
+    public abstract void revoke(String privilegeType, String database, String table);
+
+    public abstract void revoke(String privilegeType, String database, String table, List<String> column);
 }

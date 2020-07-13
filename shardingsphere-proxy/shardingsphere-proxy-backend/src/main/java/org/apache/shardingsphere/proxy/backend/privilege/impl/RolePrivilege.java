@@ -3,7 +3,6 @@ package org.apache.shardingsphere.proxy.backend.privilege.impl;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.shardingsphere.proxy.backend.privilege.PrivilegePath;
-import org.apache.shardingsphere.proxy.backend.privilege.PrivilegeExecutorWrapper;
 import org.apache.shardingsphere.proxy.backend.privilege.PrivilegeModel;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
 
@@ -13,7 +12,7 @@ import java.util.List;
 import java.util.Objects;
 
 
-public class RolePrivilege extends PrivilegeModel implements PrivilegeExecutorWrapper {
+public class RolePrivilege extends PrivilegeModel {
 
     @Getter
     @Setter

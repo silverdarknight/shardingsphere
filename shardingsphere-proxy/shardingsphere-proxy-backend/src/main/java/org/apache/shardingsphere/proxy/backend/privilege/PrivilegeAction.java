@@ -7,11 +7,6 @@ import java.util.List;
 
 public final class PrivilegeAction {
 
-    public final static String PRIVILEGE_TYPE_INSERT = "insert"
-            , PRIVILEGE_TYPE_DELETE = "delete"
-            , PRIVILEGE_TYPE_SELECT = "select"
-            , PRIVILEGE_TYPE_UPDATE = "update";
-
     @Getter
     @Setter
     private String name;
@@ -63,10 +58,10 @@ public final class PrivilegeAction {
     }
 
     public Boolean typeIsValid(){
-        Boolean actionTypeValid = this.getGrantActionType().toLowerCase().equals(PrivilegeAction.PRIVILEGE_TYPE_DELETE)
-                || this.getGrantActionType().toLowerCase().equals(PrivilegeAction.PRIVILEGE_TYPE_INSERT)
-                || this.getGrantActionType().toLowerCase().equals(PrivilegeAction.PRIVILEGE_TYPE_SELECT)
-                || this.getGrantActionType().toLowerCase().equals(PrivilegeAction.PRIVILEGE_TYPE_UPDATE);
+        Boolean actionTypeValid = this.getGrantActionType().toLowerCase().equals(AccessModel.PRIVILEGE_TYPE_DELETE)
+                || this.getGrantActionType().toLowerCase().equals(AccessModel.PRIVILEGE_TYPE_INSERT)
+                || this.getGrantActionType().toLowerCase().equals(AccessModel.PRIVILEGE_TYPE_SELECT)
+                || this.getGrantActionType().toLowerCase().equals(AccessModel.PRIVILEGE_TYPE_UPDATE);
         return actionTypeValid;
     }
 
