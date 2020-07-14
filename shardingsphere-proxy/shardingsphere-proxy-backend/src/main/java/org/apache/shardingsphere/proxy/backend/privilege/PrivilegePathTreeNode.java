@@ -195,26 +195,90 @@ public class PrivilegePathTreeNode {
     }
 
     protected void removeOffspring(String dbName){
-        //
+        if(getCurHeight()!=0) throw new ShardingSphereException("Error: wrong path input.");
+        dbName = dbName.trim();
+        if(dbName.equals("*")) {
+            if(!this.getContainsStar())
+                throw new ShardingSphereException("There is no such grant defined");
+            this.setContainsStar(false);
+        }
+        else {
+            PrivilegePathTreeNode child = new PrivilegePathTreeNode(dbName, this);
+            if(!this.getOffspring().contains(child))
+                throw new ShardingSphereException("There is no such grant defined");
+            else {
+                Iterator<PrivilegePathTreeNode> iterator = this.getOffspring().iterator();
+                while (iterator.hasNext()){
+                    PrivilegePathTreeNode node = iterator.next();
+                    if(node.equals(child)){
+                        this.getOffspring().remove(node);
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     protected void removeOffspring(String dbName, String tableName){
-        //
+        if(getCurHeight()!=0) throw new ShardingSphereException("Error: wrong path input.");
+        dbName = dbName.trim();
+        if(dbName.equals("*")) {
+            if(!this.getContainsStar())
+                throw new ShardingSphereException("There is no such grant defined");
+            this.setContainsStar(false);
+        }
+        else {
+            PrivilegePathTreeNode dbNode = new PrivilegePathTreeNode(dbName, this);
+            if(!this.getOffspring().contains(dbNode))
+                throw new ShardingSphereException("There is no such grant defined");
+            else {
+                Iterator<PrivilegePathTreeNode> iterator = this.getOffspring().iterator();
+                while (iterator.hasNext()){
+                    PrivilegePathTreeNode node = iterator.next();
+                    if(node.equals(dbNode)){
+                        dbNode = node;
+                        break;
+                    }
+                }
+            }
+
+            tableName = tableName.trim();
+            if(tableName.equals("*")) {
+                if(!dbNode.getContainsStar())
+                    throw new ShardingSphereException("There is no such grant defined");
+                dbNode.setContainsStar(false);
+            }
+            else {
+                PrivilegePathTreeNode tableNode = new PrivilegePathTreeNode(tableName, dbNode);
+                if(!dbNode.getOffspring().contains(tableNode))
+                    throw new ShardingSphereException("There is no such grant defined");
+                else {
+                    Iterator<PrivilegePathTreeNode> iterator = dbNode.getOffspring().iterator();
+                    while (iterator.hasNext()){
+                        PrivilegePathTreeNode node = iterator.next();
+                        if(node.equals(tableNode)){
+                            dbNode.getOffspring().remove(node);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     protected void removeOffspring(String dbName, String tableName, List<String> colNames){
-        //
-    }
-
-    protected void removeOffspring(String tableName, List<String> colNames){
         // db node remove table.cols
-        if(getCurHeight()!=1) throw new ShardingSphereException("Error: wrong path input.");
-        tableName = tableName.trim();
-        if(tableName.equals("*")) this.setContainsStar(false);
+        if(getCurHeight()!=0) throw new ShardingSphereException("Error: wrong path input.");
+        dbName = dbName.trim();
+        if(dbName.equals("*")) {
+            if(!this.getContainsStar())
+                throw new ShardingSphereException("There is no such grant defined");
+            this.setContainsStar(false);
+        }
         else {
-            PrivilegePathTreeNode child = new PrivilegePathTreeNode(tableName, this);
-            if(!this.getOffspring().contains(child)) {// children are columns, if table
-                this.getOffspring().add(child);
+            PrivilegePathTreeNode child = new PrivilegePathTreeNode(dbName, this);
+            if(!this.getOffspring().contains(child)) {// children are db
+                throw new ShardingSphereException("There is no such grant defined");
             }
             else {
                 Iterator<PrivilegePathTreeNode> iterator = this.getOffspring().iterator();
@@ -227,7 +291,36 @@ public class PrivilegePathTreeNode {
                 }
             }
             // child node is table node
-            child.addOffspring(colNames);
+            child.removeOffspring(tableName, colNames);
+        }
+    }
+
+    protected void removeOffspring(String tableName, List<String> colNames){
+        // db node remove table.cols
+        if(getCurHeight()!=1) throw new ShardingSphereException("Error: wrong path input.");
+        tableName = tableName.trim();
+        if(tableName.equals("*")) {
+            if(!this.getContainsStar())
+                throw new ShardingSphereException("There is no such grant defined");
+            this.setContainsStar(false);
+        }
+        else {
+            PrivilegePathTreeNode child = new PrivilegePathTreeNode(tableName, this);
+            if(!this.getOffspring().contains(child)) {// children are table
+                throw new ShardingSphereException("There is no such grant defined");
+            }
+            else {
+                Iterator<PrivilegePathTreeNode> iterator = this.getOffspring().iterator();
+                while (iterator.hasNext()){
+                    PrivilegePathTreeNode node = iterator.next();
+                    if(node.equals(child)){
+                        child = node;
+                        break;
+                    }
+                }
+            }
+            // child node is table node
+            child.removeOffspring(colNames);
         }
     }
 
@@ -235,26 +328,31 @@ public class PrivilegePathTreeNode {
         // table add cols
         if(getCurHeight()!=2) throw new ShardingSphereException("Error: wrong path input.");
         // all colNames are not contained in this table node. Cause error Msg.
-        Iterator<String> iterator = colNames.iterator();
-        Boolean causeErrorEveryNotContains = true;
-        while (iterator.hasNext()){
-            String colName = iterator.next().trim();
-            if(colName.equals("*")) {
-                if(this.getContainsStar() || this.getOffspring().size()!=0)
-                    causeErrorEveryNotContains = false;
-                this.setContainsStar(false);
-                this.getOffspring().clear();
-            }
-            else {
-                PrivilegePathTreeNode child = new PrivilegePathTreeNode(colName,this);
-                if(!this.getOffspring().contains(child)){
-                    this.getOffspring().remove(child);
-                    causeErrorEveryNotContains = false;
+        if(colNames.size() == 0) {
+            this.setContainsStar(true);
+        }
+        else{
+            Iterator<String> iterator = colNames.iterator();
+            Boolean causeErrorEveryNotContains = true;
+            while (iterator.hasNext()){
+                String colName = iterator.next().trim();
+                if(colName.equals("*")) {
+                    if(this.getContainsStar() || this.getOffspring().size()!=0)
+                        causeErrorEveryNotContains = false;
+                    this.setContainsStar(false);
+                    this.getOffspring().clear();
+                }
+                else {
+                    PrivilegePathTreeNode child = new PrivilegePathTreeNode(colName,this);
+                    if(!this.getOffspring().contains(child)){
+                        this.getOffspring().remove(child);
+                        causeErrorEveryNotContains = false;
+                    }
                 }
             }
+            if(causeErrorEveryNotContains)
+                throw new ShardingSphereException("There is no such grant defined");
         }
-        if(causeErrorEveryNotContains)
-            throw new ShardingSphereException("There is no such grant defined");
     }
 
     @Override

@@ -14,7 +14,7 @@ public class PrivilegePathTree {
 
     private PrivilegePathTreeNode root = new PrivilegePathTreeNode();
 
-    protected Boolean checkPath(String dbName){
+    public Boolean checkPath(String dbName){
         if(root.getContainsStar()) return true;
         Iterator<PrivilegePathTreeNode> iteratorDB = root.getOffspring().iterator();
         while (iteratorDB.hasNext()){
@@ -24,7 +24,7 @@ public class PrivilegePathTree {
         return false;
     }
 
-    protected Boolean checkPath(String dbName, String tableName){
+    public Boolean checkPath(String dbName, String tableName){
         if(root.getContainsStar()) return true;
         Iterator<PrivilegePathTreeNode> iteratorDB = root.getOffspring().iterator();
         while (iteratorDB.hasNext()){
@@ -41,7 +41,7 @@ public class PrivilegePathTree {
         return false;
     }
 
-    protected Boolean checkPath(String dbName, String tableName, String colName){
+    public Boolean checkPath(String dbName, String tableName, String colName){
         if(root.getContainsStar()) return true;
         Iterator<PrivilegePathTreeNode> iteratorDB = root.getOffspring().iterator();
         while (iteratorDB.hasNext()){
@@ -65,27 +65,27 @@ public class PrivilegePathTree {
         return false;
     }
 
-    protected void grantPath(String dbName){
+    public void grantPath(String dbName){
         getRoot().addOffspring(dbName);
     }
 
-    protected void grantPath(String dbName, String tableName){
+    public void grantPath(String dbName, String tableName){
         getRoot().addOffspring(dbName, tableName);
     }
 
-    protected void grantPath(String dbName, String tableName, List<String> colNames){
+    public void grantPath(String dbName, String tableName, List<String> colNames){
         getRoot().addOffspring(dbName, tableName, colNames);
     }
 
-    protected void revokePath(String dbName){
+    public void revokePath(String dbName){
         getRoot().removeOffspring(dbName);
     }
 
-    protected void revokePath(String dbName, String tableName){
+    public void revokePath(String dbName, String tableName){
         getRoot().removeOffspring(dbName, tableName);
     }
 
-    protected void revokePath(String dbName, String tableName, List<String> colNames){
+    public void revokePath(String dbName, String tableName, List<String> colNames){
         getRoot().removeOffspring(dbName, tableName, colNames);
     }
 }
