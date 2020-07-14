@@ -14,16 +14,6 @@ public class PrivilegePathTree {
 
     private PrivilegePathTreeNode root = new PrivilegePathTreeNode();
 
-    public Boolean checkPath(String dbName){
-        if(root.getContainsStar()) return true;
-        Iterator<PrivilegePathTreeNode> iteratorDB = root.getOffspring().iterator();
-        while (iteratorDB.hasNext()){
-            PrivilegePathTreeNode DBNode = iteratorDB.next();
-            if(DBNode.isPath(dbName)) return true;
-        }
-        return false;
-    }
-
     public Boolean checkPath(String dbName, String tableName){
         if(root.getContainsStar()) return true;
         Iterator<PrivilegePathTreeNode> iteratorDB = root.getOffspring().iterator();
@@ -65,28 +55,65 @@ public class PrivilegePathTree {
         return false;
     }
 
-    public void grantPath(String dbName){
-        getRoot().addOffspring(dbName);
-    }
-
     public void grantPath(String dbName, String tableName){
         getRoot().addOffspring(dbName, tableName);
     }
 
     public void grantPath(String dbName, String tableName, List<String> colNames){
-        getRoot().addOffspring(dbName, tableName, colNames);
-    }
-
-    public void revokePath(String dbName){
-        getRoot().removeOffspring(dbName);
+        if(colNames.size()==0)
+            getRoot().addOffspring(dbName, tableName);
+        else
+            getRoot().addOffspring(dbName, tableName, colNames);
     }
 
     public void revokePath(String dbName, String tableName){
         getRoot().removeOffspring(dbName, tableName);
+        clearPath(dbName);
     }
 
     public void revokePath(String dbName, String tableName, List<String> colNames){
         getRoot().removeOffspring(dbName, tableName, colNames);
+        clearPath(dbName, tableName);
+        clearPath(dbName);
+    }
+
+    // if cols are null && do not have *, remove table node
+    private void clearPath(String dbName, String tableName){
+        dbName = dbName.trim();
+        tableName = tableName.trim();
+        Iterator<PrivilegePathTreeNode> dbIterator = this.getRoot().getOffspring().iterator();
+        while (dbIterator.hasNext()){
+            PrivilegePathTreeNode curNode = dbIterator.next();
+            if(curNode.getPathValue().equals(dbName)){
+                // clear table node
+                Iterator<PrivilegePathTreeNode> tableIterator = curNode.getOffspring().iterator();
+                while (tableIterator.hasNext()){
+                    PrivilegePathTreeNode tableNode = tableIterator.next();
+                    if(tableNode.getPathValue().equals(tableName) &&
+                            tableNode.getOffspring().size()==0 &&
+                            !tableNode.getContainsStar()){
+                        curNode.getOffspring().remove(tableNode);
+                    }
+                }
+                // clear db node
+                if(curNode.getOffspring().size()==0 && !curNode.getContainsStar()){
+                    this.getRoot().getOffspring().remove(curNode);
+                }
+            }
+        }
+    }
+
+    // if tables are null && do not have *, remove db node
+    private void clearPath(String dbName){
+        Iterator<PrivilegePathTreeNode> iterator = this.getRoot().getOffspring().iterator();
+        while (iterator.hasNext()){
+            PrivilegePathTreeNode curNode = iterator.next();
+            if(curNode.getPathValue().equals(dbName) &&
+                    curNode.getOffspring().size()==0 &&
+                    !curNode.getContainsStar()){
+                this.getRoot().getOffspring().remove(curNode);
+            }
+        }
     }
 }
 

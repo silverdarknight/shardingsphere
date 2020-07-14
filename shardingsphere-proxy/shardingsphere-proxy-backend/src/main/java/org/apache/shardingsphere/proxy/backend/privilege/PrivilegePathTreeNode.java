@@ -20,13 +20,7 @@ public class PrivilegePathTreeNode {
         this.setPathValue(pathValue);
         if(treeNode.curHeight>=3) throw new ShardingSphereException("Please input correct path and columns.");
         this.setCurHeight(treeNode.getCurHeight()+1);
-    }
-
-    public PrivilegePathTreeNode(String pathValue, PrivilegePathTreeNode treeNode, Boolean isReg){
-        this.setPathValue(pathValue);
-        if(treeNode.curHeight>=3) throw new ShardingSphereException("Please input correct path and columns.");
-        this.setCurHeight(treeNode.getCurHeight()+1);
-        this.setIsRegNode(isReg);
+        this.setIsRegNode(checkPathValueIsReg(pathValue));
     }
 
     protected Boolean isPath(String path){
@@ -36,6 +30,12 @@ public class PrivilegePathTreeNode {
         else return likePath(path);
     }
 
+    // not used yet
+    private Boolean checkPathValueIsReg(String pathValue){
+        return false;
+    }
+
+    // not used yet
     private Boolean likePath(String path){
         return true;
     }
@@ -49,31 +49,6 @@ public class PrivilegePathTreeNode {
     private Boolean containsStar = false;
 
     private int curHeight;
-
-    protected void addOffspring(String dbName){
-        // root node add db.*.*
-        if(getCurHeight()!=0) throw new ShardingSphereException("Error: wrong path input.");
-        dbName = dbName.trim();
-        if(dbName.equals("*")) this.setContainsStar(true);
-        else{
-            PrivilegePathTreeNode child = new PrivilegePathTreeNode(dbName, this);
-            if(!this.getOffspring().contains(child)) {
-                this.getOffspring().add(child);
-            }
-            else {
-                Iterator<PrivilegePathTreeNode> iterator = this.getOffspring().iterator();
-                while (iterator.hasNext()){
-                    PrivilegePathTreeNode node = iterator.next();
-                    if(node.equals(child)){
-                        child = node;
-                        break;
-                    }
-                }
-            }
-            // child node is db node
-            child.setContainsStar(true);
-        }
-    }
 
     protected void addOffspring(String dbName, String tableName){
         // root node add db.*.*
@@ -194,31 +169,6 @@ public class PrivilegePathTreeNode {
                     " the manual to see which privilege can be used");
     }
 
-    protected void removeOffspring(String dbName){
-        if(getCurHeight()!=0) throw new ShardingSphereException("Error: wrong path input.");
-        dbName = dbName.trim();
-        if(dbName.equals("*")) {
-            if(!this.getContainsStar())
-                throw new ShardingSphereException("There is no such grant defined");
-            this.setContainsStar(false);
-        }
-        else {
-            PrivilegePathTreeNode child = new PrivilegePathTreeNode(dbName, this);
-            if(!this.getOffspring().contains(child))
-                throw new ShardingSphereException("There is no such grant defined");
-            else {
-                Iterator<PrivilegePathTreeNode> iterator = this.getOffspring().iterator();
-                while (iterator.hasNext()){
-                    PrivilegePathTreeNode node = iterator.next();
-                    if(node.equals(child)){
-                        this.getOffspring().remove(node);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
     protected void removeOffspring(String dbName, String tableName){
         if(getCurHeight()!=0) throw new ShardingSphereException("Error: wrong path input.");
         dbName = dbName.trim();
@@ -257,6 +207,8 @@ public class PrivilegePathTreeNode {
                     while (iterator.hasNext()){
                         PrivilegePathTreeNode node = iterator.next();
                         if(node.equals(tableNode)){
+                            node.setContainsStar(false);
+                            node.getOffspring().clear();
                             dbNode.getOffspring().remove(node);
                             break;
                         }
@@ -329,7 +281,7 @@ public class PrivilegePathTreeNode {
         if(getCurHeight()!=2) throw new ShardingSphereException("Error: wrong path input.");
         // all colNames are not contained in this table node. Cause error Msg.
         if(colNames.size() == 0) {
-            this.setContainsStar(true);
+            throw new ShardingSphereException("Error: null input columns");
         }
         else{
             Iterator<String> iterator = colNames.iterator();
@@ -341,10 +293,11 @@ public class PrivilegePathTreeNode {
                         causeErrorEveryNotContains = false;
                     this.setContainsStar(false);
                     this.getOffspring().clear();
+                    break;
                 }
                 else {
                     PrivilegePathTreeNode child = new PrivilegePathTreeNode(colName,this);
-                    if(!this.getOffspring().contains(child)){
+                    if(this.getOffspring().contains(child)){
                         this.getOffspring().remove(child);
                         causeErrorEveryNotContains = false;
                     }
@@ -361,12 +314,11 @@ public class PrivilegePathTreeNode {
         if (o == null || getClass() != o.getClass()) return false;
         PrivilegePathTreeNode that = (PrivilegePathTreeNode) o;
         return curHeight == that.curHeight &&
-                Objects.equals(pathValue, that.pathValue) &&
-                Objects.equals(isRegNode, that.isRegNode);
+                Objects.equals(pathValue, that.pathValue);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(pathValue, isRegNode, curHeight);
+        return Objects.hash(pathValue, curHeight);
     }
 }

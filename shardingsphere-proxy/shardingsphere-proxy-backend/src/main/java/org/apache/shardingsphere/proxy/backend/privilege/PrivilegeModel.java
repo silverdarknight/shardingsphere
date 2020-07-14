@@ -3,6 +3,7 @@ package org.apache.shardingsphere.proxy.backend.privilege;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
+import org.apache.shardingsphere.proxy.backend.privilege.common.PrivilegeActionType;
 import org.apache.shardingsphere.proxy.backend.privilege.impl.RolePrivilege;
 import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegeConfiguration;
 
@@ -23,6 +24,8 @@ public abstract class PrivilegeModel {
             , deletePrivilegePaths = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH)
             , updatePrivilegePaths = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH)
             , selectPrivilegePaths = new HashSet<>(PrivilegeModel.INITIAL_PRIVILEGE_LENGTH);
+
+    protected Map<String, PrivilegePathTree> privilegePaths = new HashMap<>(PrivilegeActionType.values().length);
 
     protected void constructPrivileges(YamlPrivilegeConfiguration yamlPrivilegeConfiguration){
         // insert
