@@ -24,7 +24,7 @@ public class PrivilegePathTree {
                 Iterator<PrivilegePathTreeNode> iteratorTable = DBNode.getOffspring().iterator();
                 while (iteratorTable.hasNext()){
                     PrivilegePathTreeNode tableNode = iteratorTable.next();
-                    if(tableNode.isPath(tableName)) return true;
+                    if(tableNode.isPath(tableName) && tableNode.getContainsStar()) return true;
                 }
             }
         }
@@ -93,6 +93,7 @@ public class PrivilegePathTree {
                             tableNode.getOffspring().size()==0 &&
                             !tableNode.getContainsStar()){
                         curNode.getOffspring().remove(tableNode);
+                        break;
                     }
                 }
                 // clear db node
@@ -112,8 +113,22 @@ public class PrivilegePathTree {
                     curNode.getOffspring().size()==0 &&
                     !curNode.getContainsStar()){
                 this.getRoot().getOffspring().remove(curNode);
+                break;
             }
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PrivilegePathTree that = (PrivilegePathTree) o;
+        return Objects.equals(root, that.root);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(root);
     }
 }
 

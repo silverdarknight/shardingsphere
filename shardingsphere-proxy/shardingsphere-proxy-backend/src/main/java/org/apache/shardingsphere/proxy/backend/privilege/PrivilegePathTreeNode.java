@@ -11,6 +11,16 @@ import java.util.*;
 @Setter(value = AccessLevel.PROTECTED)
 public class PrivilegePathTreeNode {
 
+    private String pathValue = "";
+
+    private Boolean isRegNode = false;
+
+    private Collection<PrivilegePathTreeNode> offspring = new HashSet<>();
+
+    private Boolean containsStar = false;
+
+    private int curHeight;
+
     public PrivilegePathTreeNode(){
         this.setPathValue("root");
         this.setCurHeight(0);
@@ -40,16 +50,6 @@ public class PrivilegePathTreeNode {
         return true;
     }
 
-    private String pathValue = "";
-
-    private Boolean isRegNode = false;
-
-    private Set<PrivilegePathTreeNode> offspring = new HashSet<>();
-
-    private Boolean containsStar = false;
-
-    private int curHeight;
-
     protected void addOffspring(String dbName, String tableName){
         // root node add db.*.*
         if(getCurHeight()!=0) throw new ShardingSphereException("Error: wrong path input.");
@@ -57,14 +57,14 @@ public class PrivilegePathTreeNode {
         if(dbName.equals("*")) this.setContainsStar(true);
         else{
             PrivilegePathTreeNode dbNode = new PrivilegePathTreeNode(dbName, this);
-            if(!this.getOffspring().contains(dbNode)) {
+            if(!offspringContainsPathValue(dbName)) {
                 this.getOffspring().add(dbNode);
             }
             else {
                 Iterator<PrivilegePathTreeNode> iterator = this.getOffspring().iterator();
                 while (iterator.hasNext()){
                     PrivilegePathTreeNode node = iterator.next();
-                    if(node.equals(dbNode)){
+                    if(node.getPathValue().equals(dbName)){
                         dbNode = node;
                         break;
                     }
@@ -75,13 +75,13 @@ public class PrivilegePathTreeNode {
             if(tableName.equals("*")) dbNode.setContainsStar(true);
             else {
                 PrivilegePathTreeNode tableNode = new PrivilegePathTreeNode(tableName, dbNode);
-                if (!dbNode.getOffspring().contains(tableNode)) {// children are columns, if table
+                if (!dbNode.offspringContainsPathValue(tableName)) {// children are columns, if table
                     dbNode.getOffspring().add(tableNode);
                 } else {
                     Iterator<PrivilegePathTreeNode> iterator = dbNode.getOffspring().iterator();
                     while (iterator.hasNext()) {
                         PrivilegePathTreeNode node = iterator.next();
-                        if (node.equals(tableNode)) {
+                        if (node.getPathValue().equals(tableName)) {
                             tableNode = node;
                             break;
                         }
@@ -99,14 +99,14 @@ public class PrivilegePathTreeNode {
         if(dbName.equals("*")) this.setContainsStar(true);
         else{
             PrivilegePathTreeNode child = new PrivilegePathTreeNode(dbName, this);
-            if(!this.getOffspring().contains(child)) {
+            if(!this.offspringContainsPathValue(dbName)) {
                 this.getOffspring().add(child);
             }
             else {
                 Iterator<PrivilegePathTreeNode> iterator = this.getOffspring().iterator();
                 while (iterator.hasNext()){
                     PrivilegePathTreeNode node = iterator.next();
-                    if(node.equals(child)){
+                    if(node.getPathValue().equals(dbName)){
                         child = node;
                         break;
                     }
@@ -124,14 +124,14 @@ public class PrivilegePathTreeNode {
         if(tableName.equals("*")) this.setContainsStar(true);
         else {
             PrivilegePathTreeNode child = new PrivilegePathTreeNode(tableName, this);
-            if(!this.getOffspring().contains(child)) {// children are columns, if table
+            if(!this.offspringContainsPathValue(tableName)) {// children are columns, if table
                 this.getOffspring().add(child);
             }
             else {
                 Iterator<PrivilegePathTreeNode> iterator = this.getOffspring().iterator();
                 while (iterator.hasNext()){
                     PrivilegePathTreeNode node = iterator.next();
-                    if(node.equals(child)){
+                    if(node.getPathValue().equals(tableName)){
                         child = node;
                         break;
                     }
@@ -158,7 +158,7 @@ public class PrivilegePathTreeNode {
             }
             else {
                 PrivilegePathTreeNode child = new PrivilegePathTreeNode(colName,this);
-                if(!this.getOffspring().contains(child)){
+                if(!this.offspringContainsPathValue(colName)){
                     this.getOffspring().add(child);
                     causeErrorEveryContains = false;
                 }
@@ -179,13 +179,13 @@ public class PrivilegePathTreeNode {
         }
         else {
             PrivilegePathTreeNode dbNode = new PrivilegePathTreeNode(dbName, this);
-            if(!this.getOffspring().contains(dbNode))
+            if(!this.offspringContainsPathValue(dbName))
                 throw new ShardingSphereException("There is no such grant defined");
             else {
                 Iterator<PrivilegePathTreeNode> iterator = this.getOffspring().iterator();
                 while (iterator.hasNext()){
                     PrivilegePathTreeNode node = iterator.next();
-                    if(node.equals(dbNode)){
+                    if(node.getPathValue().equals(dbName)){
                         dbNode = node;
                         break;
                     }
@@ -200,13 +200,13 @@ public class PrivilegePathTreeNode {
             }
             else {
                 PrivilegePathTreeNode tableNode = new PrivilegePathTreeNode(tableName, dbNode);
-                if(!dbNode.getOffspring().contains(tableNode))
+                if(!dbNode.offspringContainsPathValue(tableName))
                     throw new ShardingSphereException("There is no such grant defined");
                 else {
                     Iterator<PrivilegePathTreeNode> iterator = dbNode.getOffspring().iterator();
                     while (iterator.hasNext()){
                         PrivilegePathTreeNode node = iterator.next();
-                        if(node.equals(tableNode)){
+                        if(node.getPathValue().equals(tableName)){
                             node.setContainsStar(false);
                             node.getOffspring().clear();
                             dbNode.getOffspring().remove(node);
@@ -229,14 +229,14 @@ public class PrivilegePathTreeNode {
         }
         else {
             PrivilegePathTreeNode child = new PrivilegePathTreeNode(dbName, this);
-            if(!this.getOffspring().contains(child)) {// children are db
+            if(!this.offspringContainsPathValue(dbName)) {// children are db
                 throw new ShardingSphereException("There is no such grant defined");
             }
             else {
                 Iterator<PrivilegePathTreeNode> iterator = this.getOffspring().iterator();
                 while (iterator.hasNext()){
                     PrivilegePathTreeNode node = iterator.next();
-                    if(node.equals(child)){
+                    if(node.getPathValue().equals(dbName)){
                         child = node;
                         break;
                     }
@@ -258,14 +258,14 @@ public class PrivilegePathTreeNode {
         }
         else {
             PrivilegePathTreeNode child = new PrivilegePathTreeNode(tableName, this);
-            if(!this.getOffspring().contains(child)) {// children are table
+            if(!this.offspringContainsPathValue(tableName)) {// children are table
                 throw new ShardingSphereException("There is no such grant defined");
             }
             else {
                 Iterator<PrivilegePathTreeNode> iterator = this.getOffspring().iterator();
                 while (iterator.hasNext()){
                     PrivilegePathTreeNode node = iterator.next();
-                    if(node.equals(child)){
+                    if(node.getPathValue().equals(tableName)){
                         child = node;
                         break;
                     }
@@ -297,7 +297,7 @@ public class PrivilegePathTreeNode {
                 }
                 else {
                     PrivilegePathTreeNode child = new PrivilegePathTreeNode(colName,this);
-                    if(this.getOffspring().contains(child)){
+                    if(this.offspringContainsPathValue(colName)){
                         this.getOffspring().remove(child);
                         causeErrorEveryNotContains = false;
                     }
@@ -308,17 +308,44 @@ public class PrivilegePathTreeNode {
         }
     }
 
+    protected Boolean offspringContainsPathValue(String pathValue){
+        Iterator<PrivilegePathTreeNode> iterator = getOffspring().iterator();
+        while (iterator.hasNext()){
+            if(iterator.next().getPathValue().equals(pathValue.trim())) return true;
+        }
+        return false;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PrivilegePathTreeNode that = (PrivilegePathTreeNode) o;
+
+        HashSet<PrivilegePathTreeNode> thisOffspring = new HashSet<>()
+                , thatOffspring = new HashSet<>();
+        Iterator<PrivilegePathTreeNode> iterator = offspring.iterator();
+        while (iterator.hasNext()){
+            thisOffspring.add(iterator.next());
+        }
+        iterator = that.offspring.iterator();
+        while (iterator.hasNext()){
+            thatOffspring.add(iterator.next());
+        }
+
         return curHeight == that.curHeight &&
-                Objects.equals(pathValue, that.pathValue);
+                Objects.equals(pathValue, that.pathValue) &&
+                Objects.equals(thisOffspring, thatOffspring) &&
+                Objects.equals(containsStar, that.containsStar);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(pathValue, curHeight);
+        HashSet<PrivilegePathTreeNode> newOffspring = new HashSet<>();
+        Iterator<PrivilegePathTreeNode> iterator = offspring.iterator();
+        while (iterator.hasNext()){
+            newOffspring.add(iterator.next());
+        }
+        return Objects.hash(pathValue, newOffspring, containsStar, curHeight);
     }
 }

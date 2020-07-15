@@ -16,10 +16,13 @@ import java.util.*;
 @Getter
 public class AccessModel implements AccessExecutorWrapper{
 
-    public final static String PRIVILEGE_TYPE_INSERT = "insert"
-            , PRIVILEGE_TYPE_DELETE = "delete"
-            , PRIVILEGE_TYPE_SELECT = "select"
-            , PRIVILEGE_TYPE_UPDATE = "update";
+    private Map<UserInformation, UserPrivilege> usersPrivilege = new HashMap<>();
+
+    private Map<String, RolePrivilege> rolesPrivileges = new HashMap<>();
+
+    private Map<String, UserInformation> userInformationMap = new HashMap<>();
+
+    private Collection<UserInformation> validUserGroup = new HashSet<>();
 
     public AccessModel(YamlAccessModel yamlAccessModel){
         // role
@@ -27,7 +30,7 @@ public class AccessModel implements AccessExecutorWrapper{
         while (roleIterator.hasNext()){
             Map.Entry<String, YamlPrivilegeConfiguration> kv = roleIterator.next();
             RolePrivilege tmpRolePrivilege = new RolePrivilege(kv.getKey());
-            tmpRolePrivilege.constructPrivileges(kv.getValue());
+            tmpRolePrivilege.constructModel(kv.getValue());
             this.addRole(tmpRolePrivilege);
         }
         //user
@@ -42,18 +45,10 @@ public class AccessModel implements AccessExecutorWrapper{
                 String roleName = roleNamesIterator.next();
                 tmpUserPrivilege.grant(this.getRolePrivilege(roleName));
             }
-            tmpUserPrivilege.constructPrivileges(curConfig.getPrivileges());
+            tmpUserPrivilege.constructModel(curConfig.getPrivileges());
             this.addUserPrivilege(tmpUserPrivilege);
         }
     }
-
-    private Map<UserInformation, UserPrivilege> usersPrivilege = new HashMap<>();
-
-    private Map<String, RolePrivilege> rolesPrivileges = new HashMap<>();
-
-    private Map<String, UserInformation> userInformationMap = new HashMap<>();
-
-    private Collection<UserInformation> validUserGroup = new HashSet<>();
 
     // search
     public Boolean containsUser(String userName){

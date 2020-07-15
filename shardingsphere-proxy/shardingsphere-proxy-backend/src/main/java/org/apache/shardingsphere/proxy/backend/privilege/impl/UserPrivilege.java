@@ -2,34 +2,23 @@ package org.apache.shardingsphere.proxy.backend.privilege.impl;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.shardingsphere.proxy.backend.privilege.PrivilegePath;
 import org.apache.shardingsphere.proxy.backend.privilege.PrivilegeModel;
-import org.apache.shardingsphere.infra.exception.ShardingSphereException;
+import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegeConfiguration;
+import org.apache.shardingsphere.proxy.config.yaml.YamlUserPrivilegeConfiguration;
 
 import java.util.*;
 
+
+@Getter
+@Setter
 public class UserPrivilege extends PrivilegeModel {
 
-    @Getter
-    @Setter
     private UserInformation userInformation;
-
-    public UserPrivilege(UserInformation userInformation){
-        this.setUserInformation(userInformation);
-    }
 
     private HashSet<RolePrivilege> roles = new HashSet<>();
 
-    private void addRole(RolePrivilege role){
-        this.roles.add(role);
-    }
-
-    private void removeRole(RolePrivilege role){
-        this.roles.remove(role);
-    }
-
-    private HashSet<RolePrivilege> getRoles(){
-        return this.roles;
+    public UserPrivilege(UserInformation userInformation){
+        this.setUserInformation(userInformation);
     }
 
     public List<String> getRolesName(){
@@ -41,128 +30,42 @@ public class UserPrivilege extends PrivilegeModel {
         return rolesName;
     }
 
-    @Override
-    public boolean checkPrivilege(String privilegeType, String information) {
-        HashSet<PrivilegePath> targetPrivilegePaths = this.chosePrivilegeType(privilegeType);
-        String[] splitTargets = information.split("\\.");
-        switch (splitTargets.length){
-            case 1:
-                Iterator<PrivilegePath> iterator = targetPrivilegePaths.iterator();
-                while (iterator.hasNext()){
-                    PrivilegePath curPrivilegePath = iterator.next();
-                    if(curPrivilegePath.containsTargetPlace(splitTargets[0])) return true;
-                }
-                break;
-            case 2:
-                if(checkPrivilege(privilegeType, splitTargets[0], splitTargets[1])) return true;
-                break;
-            case 3:
-                if(checkPrivilege(privilegeType, splitTargets[0], splitTargets[1], splitTargets[2])) return true;
-                break;
-            default:
-                throw new ShardingSphereException("Invalid privilege format.");
-        }
-        if(roles != null && roles.size()!=0){
-            Iterator<RolePrivilege> roleIterator = roles.iterator();
-            while (roleIterator.hasNext()){
-                RolePrivilege curRolePrivilege = roleIterator.next();
-                if(curRolePrivilege.checkPrivilege(privilegeType,information)) return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public boolean checkPrivilege(String privilegeType, String database, String table) {
-        HashSet<PrivilegePath> targetPrivilegePaths = this.chosePrivilegeType(privilegeType);
-        Iterator<PrivilegePath> iterator = targetPrivilegePaths.iterator();
-        while (iterator.hasNext()){
-            PrivilegePath curPrivilegePath = iterator.next();
-            if(curPrivilegePath.containsTargetPlace(database,table)) return true;
-        }
-        if(roles != null && roles.size()!=0){
-            Iterator<RolePrivilege> roleIterator = roles.iterator();
-            while (roleIterator.hasNext()){
-                RolePrivilege curRolePrivilege = roleIterator.next();
-                if(curRolePrivilege.checkPrivilege(privilegeType,database,table)) return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public boolean checkPrivilege(String privilegeType, String database, String table, String column) {
-        HashSet<PrivilegePath> targetPrivilegePaths = this.chosePrivilegeType(privilegeType);
-        Iterator<PrivilegePath> iterator = targetPrivilegePaths.iterator();
-        while (iterator.hasNext()){
-            PrivilegePath curPrivilegePath = iterator.next();
-            if(curPrivilegePath.containsTargetPlace(database,table,column)) return true;
-        }
-        if(roles != null && roles.size()!=0){
-            Iterator<RolePrivilege> roleIterator = roles.iterator();
-            while (roleIterator.hasNext()){
-                RolePrivilege curRolePrivilege = roleIterator.next();
-                if(curRolePrivilege.checkPrivilege(privilegeType,database,table,column)) return true;
-            }
-        }
-        return false;
-    }
-
     public void grant(RolePrivilege role){
-        this.addRole(role);
-    }
-
-    @Override
-    public void grant(String privilegeType, String information) {
-        PrivilegePath targetPrivilegePath = new PrivilegePath(information);
-        this.addPrivilege(privilegeType, targetPrivilegePath);
-    }
-
-    @Override
-    public void grant(String privilegeType, String database, String table) {
-        PrivilegePath targetPrivilegePath = new PrivilegePath(database, table);
-        this.addPrivilege(privilegeType, targetPrivilegePath);
-    }
-
-    @Override
-    public void grant(String privilegeType, String database, String table, List<String> column) {
-        PrivilegePath targetPrivilegePath = new PrivilegePath(database, table, column);
-        this.addPrivilege(privilegeType, targetPrivilegePath);
+        this.getRoles().add(role);
     }
 
     public void revoke(RolePrivilege role){
-        this.removeRole(role);
+        this.getRoles().remove(role);
     }
 
     @Override
-    public void revoke(String privilegeType, String information) {
-        PrivilegePath privilegePath = new PrivilegePath(information);try{
-            this.removePrivilege(privilegeType, privilegePath);
+    public boolean checkPrivilege(String privilegeType, String dbName, String tableName, String column) {
+        Iterator<RolePrivilege> iterator = this.getRoles().iterator();
+        while (iterator.hasNext()){
+            RolePrivilege curRole = iterator.next();
+            if(curRole.checkPrivilege(privilegeType, dbName, tableName, column)) return true;
         }
-        catch (Exception e){
-            throw new ShardingSphereException("there is no such grant defined for role '"
-                    + this.getUserInformation().getUserName());
-        }
+        return super.checkPrivilege(privilegeType, dbName, tableName, column);
     }
 
     @Override
-    public void revoke(String privilegeType, String database, String table) {
-        PrivilegePath privilegePath = new PrivilegePath(database, table);try{
-            this.removePrivilege(privilegeType, privilegePath);
+    public boolean checkPrivilege(String privilegeType, String dbName, String tableName) {
+        Iterator<RolePrivilege> iterator = this.getRoles().iterator();
+        while (iterator.hasNext()){
+            RolePrivilege curRole = iterator.next();
+            if(curRole.checkPrivilege(privilegeType, dbName, tableName)) return true;
         }
-        catch (Exception e){
-            throw new ShardingSphereException("there is no such grant defined for role '"+this.getUserInformation().getUserName());
-        }
+        return super.checkPrivilege(privilegeType, dbName, tableName);
     }
 
     @Override
-    public void revoke(String privilegeType, String database, String table, List<String> column) {
-        PrivilegePath privilegePath = new PrivilegePath(database, table, column);try{
-            this.removePrivilege(privilegeType, privilegePath);
+    public boolean checkPrivilege(String privilegeType, String information) {
+        Iterator<RolePrivilege> iterator = this.getRoles().iterator();
+        while (iterator.hasNext()){
+            RolePrivilege curRole = iterator.next();
+            if(curRole.checkPrivilege(privilegeType, information)) return true;
         }
-        catch (Exception e){
-            throw new ShardingSphereException("there is no such grant defined for role '"+this.getUserInformation().getUserName());
-        }
+        return super.checkPrivilege(privilegeType, information);
     }
 
     @Override

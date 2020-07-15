@@ -18,24 +18,58 @@
 roleList:
   role1:
     insert:
-      - '*.*.*'
+      - information:
+          '*.*'
     delete:
-      - 'testDB.testTable'
+      - information:
+          'testDB.testTable'
     select:
-      - 'testDB.testTable.col1'
+      - information:
+          'testDB.testTable'
+        cols:
+          - 'col1'
     update:
-      - 'testDB.testTable. col1;col2'
-      - 'testDB.testTable. col2; col3'
+      - information:
+          'testDB.testTable'
+        cols:
+          - ' col1'
+          - 'col2'
+          - ' col2'
+          - ' col3'
+      - information:
+          'testDB.testTable2'
+        cols:
+          - ' col1'
+          - 'col2'
+          - ' col2'
+          - ' col3'
   role2:
     insert:
-      - '*.*.*'
+      - information:
+          '*.*'
     delete:
-      - 'testDB.testTable'
+      - information:
+          'testDB.testTable'
     select:
-      - 'testDB.testTable.col1'
+      - information:
+          'testDB.testTable'
+        cols:
+          - 'col1'
     update:
-      - 'testDB.testTable. col1;col2'
-      - 'testDB.testTable. col2; col3'
+      - information:
+          'testDB.testTable'
+        cols:
+          - ' col1'
+          - 'col2'
+          - ' col2'
+          - ' col3'
+      - information:
+          'testDB.testTable2'
+        cols:
+          - ' col1'
+          - 'col2'
+          - ' col2'
+          - ' col3'
 userList:
   user1:
     password:
@@ -45,14 +79,31 @@ userList:
       - role2
     privileges:
       insert:
-        - '*.*.*'
+        - information:
+            '*.*'
       delete:
-        - 'testDB.testTable'
+        - information:
+            'testDB.testTable'
       select:
-        - 'testDB.testTable.col1'
+        - information:
+            'testDB.testTable'
+          cols:
+            - 'col1'
       update:
-        - 'testDB.testTable. col1;col2'
-        - 'testDB.testTable. col2; col3'
+        - information:
+            'testDB.testTable'
+          cols:
+            - ' col1'
+            - 'col2'
+            - ' col2'
+            - ' col3'
+        - information:
+            'testDB.testTable2'
+          cols:
+            - ' col1'
+            - 'col2'
+            - ' col2'
+            - ' col3'
   user2:
     password:
       pw2
@@ -61,11 +112,28 @@ userList:
       - role2
     privileges:
       insert:
-        - '*.*.*'
+        - information:
+            '*.*'
       delete:
-        - 'testDB.testTable'
+        - information:
+            'testDB.testTable'
       select:
-        - 'testDB.testTable.col1'
+        - information:
+            'testDB.testTable'
+          cols:
+            - 'col1'
       update:
-        - 'testDB.testTable. col1;col2'
-        - 'testDB.testTable. col2; col3'
+        - information:
+            'testDB.testTable'
+          cols:
+            - ' col1'
+            - 'col2'
+            - ' col2'
+            - ' col3'
+        - information:
+            'testDB.testTable2'
+          cols:
+            - ' col1'
+            - 'col2'
+            - ' col2'
+            - ' col3'

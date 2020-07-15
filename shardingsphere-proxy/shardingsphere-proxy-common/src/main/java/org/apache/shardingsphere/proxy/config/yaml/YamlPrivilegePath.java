@@ -24,16 +24,14 @@ import org.apache.shardingsphere.infra.yaml.config.YamlConfiguration;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
-public final class YamlPrivilegeConfiguration implements YamlConfiguration {
 
-    private List<YamlPrivilegePath> insert = new LinkedList<>();
+public class YamlPrivilegePath implements YamlConfiguration {
 
-    private List<YamlPrivilegePath> delete = new LinkedList<>();
+    private String information;
 
-    private List<YamlPrivilegePath> select = new LinkedList<>();
-
-    private List<YamlPrivilegePath> update = new LinkedList<>();
+    private List<String> cols = new LinkedList<>();
 }

@@ -2,7 +2,9 @@ package org.apache.shardingsphere.proxy.backend.privilege;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.shardingsphere.infra.exception.ShardingSphereException;
 
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -21,52 +23,62 @@ public final class PrivilegeAction {
 
     @Getter
     @Setter
-    private PrivilegePath path;
+    private String dbName;
+
+    @Getter
+    @Setter
+    private String tableName;
+
+    @Getter
+    @Setter
+    private List<String> columns = new LinkedList<>();
 
     private Boolean privilegePathValid = true;
 
-    public PrivilegeAction(String userName, String actionType, String information){
+    public PrivilegeAction(String userName, String actionType, String dbName, String table){
         this.setName(userName);
         this.setGrantActionType(actionType.toLowerCase());
         try {
-            this.setPath(new PrivilegePath(information));
+            setDbName(dbName);
+            setTableName(table);
         }
         catch (Exception e){
             this.privilegePathValid = false;
         }
     }
 
-    public PrivilegeAction(String userName, String actionType, String database, String table){
+    public PrivilegeAction(String userName, String actionType, String dbName, String table, List<String> cols){
         this.setName(userName);
         this.setGrantActionType(actionType.toLowerCase());
         try {
-            this.setPath(new PrivilegePath(database, table));
+            setDbName(dbName);
+            setTableName(table);
+            setColumns(cols);
         }
         catch (Exception e){
             this.privilegePathValid = false;
         }
     }
 
-    public PrivilegeAction(String userName, String actionType, String database, String table, List<String> cols){
+    public PrivilegeAction(String userName, String actionType, String dbName, String table, String col){
         this.setName(userName);
         this.setGrantActionType(actionType.toLowerCase());
         try {
-            this.setPath(new PrivilegePath(database, table, cols));
+            setDbName(dbName);
+            setTableName(table);
+            getColumns().add(col);
         }
         catch (Exception e){
             this.privilegePathValid = false;
         }
-    }
-
-    public Boolean typeIsValid(){
-        Boolean actionTypeValid = this.getGrantActionType().toLowerCase().equals(AccessModel.PRIVILEGE_TYPE_DELETE)
-                || this.getGrantActionType().toLowerCase().equals(AccessModel.PRIVILEGE_TYPE_INSERT)
-                || this.getGrantActionType().toLowerCase().equals(AccessModel.PRIVILEGE_TYPE_SELECT)
-                || this.getGrantActionType().toLowerCase().equals(AccessModel.PRIVILEGE_TYPE_UPDATE);
-        return actionTypeValid;
     }
 
     public Boolean isUser(){
         return this.isUser;
+    }
+
+    private String[] splitInformation(String information){
+        String[] dbAndTable = information.split("\\.");
+        return dbAndTable;
     }
 }
