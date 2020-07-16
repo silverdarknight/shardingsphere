@@ -95,15 +95,11 @@ userList:
           cols:
             - ' col1'
             - 'col2'
-            - ' col2'
-            - ' col3'
         - information:
             'testDB.testTable2'
           cols:
             - ' col1'
             - 'col2'
-            - ' col2'
-            - ' col3'
   user2:
     password:
       pw2
@@ -137,3 +133,9 @@ userList:
             - 'col2'
             - ' col2'
             - ' col3'
+  user3:
+    password:
+      pw3
+invalidGroup:
+  - 'user1'
+  - 'user2'

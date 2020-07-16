@@ -9,7 +9,8 @@ import java.util.Objects;
 @Setter
 public class UserInformation {
 
-    public static String ROOT_USER = "ROOT";
+    public static String ROOT_USER = "ROOT"
+            , DEFAULT_USER = "ANONYMOUS";
 
     private String userName;
 

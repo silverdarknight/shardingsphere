@@ -21,9 +21,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.shardingsphere.infra.yaml.config.YamlConfiguration;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 @Setter
@@ -32,4 +30,6 @@ public final class YamlAccessModel implements YamlConfiguration {
     private Map<String, YamlPrivilegeConfiguration> roleList = new HashMap<>();
 
     private Map<String, YamlUserPrivilegeConfiguration> userList = new HashMap<>();
+
+    private List<String> invalidGroup = new LinkedList<>();
 }

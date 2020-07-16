@@ -4,49 +4,71 @@ import org.apache.shardingsphere.proxy.backend.privilege.impl.RolePrivilege;
 
 import java.util.List;
 
+/**
+ * byUser-create    -isUser-name+pw
+ *                  -name
+ *        remove    -isUser-name
+ *                  -name
+ *        disable   -isUser-name
+ *                  -name
+ *        revoke    -isUser-name-privilegeType-pathParameters
+ *                              -roleName
+ *                  -name-privilegeType-pathParameters
+ *        grant     -isUser-name-privilegeType-pathParameters
+ *                              -roleName
+ *                  -name-privilegeType-pathParameters
+ *
+ *        check     -privilegeType-name-pathParameters
+ */
 public interface AccessExecutorWrapper {
 
-    public Boolean checkUserPrivilege(String userName, String privilegeType, String database, String table, List<String> column);
+    public void createUser(String byUserName, String userName, String password);
 
-    public Boolean checkUserPrivilege(String userName, String privilegeType, String database, String table, String column);
+    public void createRole(String byUserName, String roleName);
 
-    public Boolean checkUserPrivilege(String userName, String privilegeType, String database, String table);
+    public void removeUser(String byUserName, String userName);
 
-    public Boolean checkUserPrivilege(String userName, String privilegeType, String database);
+    public void removeRole(String byUserName, String roleName);
 
-    public void createUser(String userName, String password);
+    public void disableUser(String byUserName, String userName);
 
-    public void removeUser(String userName);
+    public Boolean checkUserPrivilege(String byUserName, String userName, String privilegeType, String database, String table, List<String> column);
 
-    public void grantUser(String userName, String privilegeType, String database, String table, List<String> column);
+    public Boolean checkUserPrivilege(String byUserName, String userName, String privilegeType, String database, String table, String column);
 
-    public void grantUser(String userName, String privilegeType, String database, String table);
+    public Boolean checkUserPrivilege(String byUserName, String userName, String privilegeType, String information, String table);
 
-    public void grantUser(String userName, String privilegeType, String database);
+    public Boolean checkRolePrivilege(String byUserName, String roleName, String privilegeType, String database, String table, List<String> column);
 
-    public void grantUser(String userName, String roleName);
+    public Boolean checkRolePrivilege(String byUserName, String roleName, String privilegeType, String database, String table, String column);
 
-    public void revokeUser(String userName, String privilegeType, String database, String table, List<String> column);
+    public Boolean checkRolePrivilege(String byUserName, String roleName, String privilegeType, String information, String table);
 
-    public void revokeUser(String userName, String privilegeType, String database, String table);
+    public void grantUser(String byUserName, String userName, String privilegeType, String database, String table, List<String> column);
 
-    public void revokeUser(String userName, String privilegeType, String database);
+    public void grantUser(String byUserName, String userName, String privilegeType, String database, String table);
 
-    public void revokeUser(String userName, String roleName);
+    public void grantUser(String byUserName, String userName, String privilegeType, String information);
 
-    public void createRole(String roleName);
+    public void grantUser(String byUserName, String userName, String roleName);
 
-    public void removeRole(String roleName);
+    public void grantRole(String byUserName, String roleName, String privilegeType, String database, String table, List<String> column);
 
-    public void grantRole(String roleName, String privilegeType, String database, String table, List<String> column);
+    public void grantRole(String byUserName, String roleName, String privilegeType, String database, String table);
 
-    public void grantRole(String roleName, String privilegeType, String database, String table);
+    public void grantRole(String byUserName, String roleName, String privilegeType, String information);
 
-    public void grantRole(String roleName, String privilegeType, String database);
+    public void revokeUser(String byUserName, String userName, String privilegeType, String database, String table, List<String> column);
 
-    public void revokeRole(String roleName, String privilegeType, String database, String table, List<String> column);
+    public void revokeUser(String byUserName, String userName, String privilegeType, String database, String table);
 
-    public void revokeRole(String roleName, String privilegeType, String database, String table);
+    public void revokeUser(String byUserName, String userName, String privilegeType, String information);
 
-    public void revokeRole(String roleName, String privilegeType, String database);
+    public void revokeUser(String byUserName, String userName, String roleName);
+
+    public void revokeRole(String byUserName, String roleName, String privilegeType, String database, String table, List<String> column);
+
+    public void revokeRole(String byUserName, String roleName, String privilegeType, String database, String table);
+
+    public void revokeRole(String byUserName, String roleName, String privilegeType, String information);
 }

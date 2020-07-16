@@ -1,39 +1,62 @@
 package org.apache.shardingsphere.proxy.backend.privilege;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
+import org.apache.shardingsphere.proxy.backend.privilege.impl.UserInformation;
 
 import java.util.LinkedList;
 import java.util.List;
 
-
-@Getter
+/**
+ * byUser-create    -isUser-name+pw
+ *                  -name
+ *        remove    -isUser-name
+ *                  -name
+ *        disable   -isUser-name
+ *                  -name
+ *        revoke    -isUser-name-privilegeType-pathParameters
+ *                  -name-privilegeType-pathParameters
+ *        grant     -isUser-name-privilegeType-pathParameters
+ *                  -name-privilegeType-pathParameters
+ *
+ *        check     -privilegeType-name-pathParameters
+ */
+@Getter(value = AccessLevel.PRIVATE)
+@Setter(value = AccessLevel.PRIVATE)
 public final class PrivilegeAction {
 
-    @Setter
+    public static String CREATE="create"
+            ,REMOVE = "remove"
+            ,DISABLE = "disable"
+            ,REVOKE = "revoke"
+            ,GRANT = "grant"
+            ,CHECK = "check";
+
+    // action by user
+    private String actionUser = UserInformation.DEFAULT_USER;
+
+    // action parameters (check user, grant revoke user/role)
     private String name;
 
-    @Setter
     private Boolean isUser;
 
-    @Getter
-    @Setter
+    private Boolean isCheckAction;
+
     private String grantActionType;
 
-    @Getter
-    @Setter
     private String dbName;
 
-    @Getter
-    @Setter
     private String tableName;
 
-    @Getter
-    @Setter
     private List<String> columns = new LinkedList<>();
 
-    private Boolean privilegePathValid = true;
+    private Boolean privilegePathValid;
+
+    // action parameters (add remove disable user/role)
+
+    // action parameters (update userInfo) (not needed yet)
 
     public PrivilegeAction(String userName, String actionType, String dbName, String table){
         this.setName(userName);
@@ -73,8 +96,16 @@ public final class PrivilegeAction {
         }
     }
 
+    public void asRole(){
+        this.setIsUser(false);
+    }
+
+    public void asUser(){
+        this.setIsUser(true);
+    }
+
     public Boolean isUser(){
-        return this.isUser;
+        return getIsUser();
     }
 
     private String[] splitInformation(String information){

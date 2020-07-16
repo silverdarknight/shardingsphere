@@ -2,37 +2,36 @@ package org.apache.shardingsphere.proxy.backend.privilege;
 
 import java.util.List;
 
-public class PrivilegeExecutor {
+public class PrivilegeExecutor  implements PrivilegeExecutorWrapper{
 
     private AccessModel accessModel;
 
     private ZKPrivilegeWatcher zkPrivilegeWatcher;
 
-    public boolean check(PrivilegeAction action){
-        return true;
+    private PrivilegeAction waitingAction;
+
+    @Override
+    public void setNextAction(PrivilegeAction action) {
+
     }
 
-    public void grant(PrivilegeAction action){
-        // add user privilege
+    @Override
+    public void runAction(PrivilegeAction action) {
+
     }
 
-    public void revoke(PrivilegeAction action){
-        // remove user privilege
+    @Override
+    public void redoAction(PrivilegeAction action) {
+
     }
 
-    public void addUser(String userName, String password){
-        // add user
+    @Override
+    public boolean checkAction(PrivilegeAction action) {
+        return false;
     }
 
-    public void removeUser(String userName){
-        // remove user
-    }
+    @Override
+    public void otherAction(PrivilegeAction action) {
 
-    public void addRole(String roleName){
-        // add role
-    }
-
-    public void removeRole(String roleName){
-        // remove role
     }
 }

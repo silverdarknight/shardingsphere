@@ -22,6 +22,9 @@ public class AccessModelTest {
         AccessModel accessModel = new AccessModel(yamlAccessModel);
         assertThat(accessModel.getRolesPrivileges().size(),is(2));
         assertThat(accessModel.getUsersPrivilege().size(),is(2));
-        assertThat(accessModel.getUserPrivilege("user1").getUserInformation().getUserName(),is("user1"));
+        assertThat(accessModel.getUserInformationMap().get("user3").getPassword(),is("pw3"));
+        assertThat(accessModel.getUsersPrivilege().containsKey("user3"),is(false));
+        assertThat(accessModel.getUsersPrivilege().get("user1").checkPrivilege("select","testDB.testTable"),is(false));
+        assertThat(accessModel.getUsersPrivilege().get("user1").checkPrivilege("select","testDB.testTable.col1"),is(true));
     }
 }

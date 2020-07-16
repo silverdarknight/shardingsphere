@@ -8,7 +8,7 @@ import org.apache.shardingsphere.infra.exception.ShardingSphereException;
 
 import java.util.*;
 
-@Getter
+@Getter(value = AccessLevel.PROTECTED)
 @Setter(value = AccessLevel.PRIVATE)
 public class PrivilegePathTree {
 

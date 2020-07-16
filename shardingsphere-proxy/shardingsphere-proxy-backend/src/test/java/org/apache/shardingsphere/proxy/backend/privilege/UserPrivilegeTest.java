@@ -15,14 +15,14 @@ public class UserPrivilegeTest {
 
     @Test
     public void userPrivilegeConstruct(){
-        UserPrivilege userPrivilege = new UserPrivilege(new UserInformation("testUser","pw"));
+        UserPrivilege userPrivilege = new UserPrivilege();
         assertThat(userPrivilege,instanceOf(UserPrivilege.class));
     }
 
     @Test
     public void userPrivilegeCheckNotInRole(){
         // information (database / information)
-        UserPrivilege userPrivilege = new UserPrivilege(new UserInformation("testUser","pw"));
+        UserPrivilege userPrivilege = new UserPrivilege();
         List<String> testCols = new LinkedList<>(); testCols.add("col1");testCols.add("col2");
         userPrivilege.grant("select", "*.*"); // select all privilege
         userPrivilege.grant("delete", "testDB.testTable",testCols); // delete testDB.testTable.col1;col2
@@ -45,7 +45,7 @@ public class UserPrivilegeTest {
     public void userPrivilegeGrant(){
         UserPrivilege userPrivilege1,userPrivilege2;
         // role
-        userPrivilege1 = new UserPrivilege(new UserInformation("testUser","pw"));
+        userPrivilege1 = new UserPrivilege();
         RolePrivilege rolePrivilege = new RolePrivilege("testRole");
         List<String> testCols = new LinkedList<>(); testCols.add("col1");testCols.add("col2");
         rolePrivilege.grant("select", "*.*"); // select all privilege
@@ -55,8 +55,8 @@ public class UserPrivilegeTest {
         userPrivilege1.grant(rolePrivilege);
         assertThat(userPrivilege1.getRolesName().size(),is(1));
         // information (database / information)
-        userPrivilege1 = new UserPrivilege(new UserInformation("testUser","pw"));
-        userPrivilege2 = new UserPrivilege(new UserInformation("testUser","pw"));
+        userPrivilege1 = new UserPrivilege();
+        userPrivilege2 = new UserPrivilege();
         userPrivilege1.grant("select", "*.*");
         userPrivilege2.grant("select", "testDB2.testTable");
         assertThat(userPrivilege2.checkPrivilege("select","testDB2.testTable"),is(true));
@@ -75,7 +75,7 @@ public class UserPrivilegeTest {
     @Test
     public void userPrivilegeRevoke(){
         UserPrivilege userPrivilege1,userPrivilege2;
-        userPrivilege1 = new UserPrivilege(new UserInformation("testUser","pw"));
+        userPrivilege1 = new UserPrivilege();
         userPrivilege1.grant("select", "testDB2.*");
         List<String> testCols = new LinkedList<>(); testCols.add("col1");
         userPrivilege1.grant("select", "testDB.testTable",testCols);
@@ -109,7 +109,7 @@ public class UserPrivilegeTest {
     @Test
     public void userPrivilegeCheckInRole(){
         UserPrivilege userPrivilege1;
-        userPrivilege1 = new UserPrivilege(new UserInformation("testUser","pw"));
+        userPrivilege1 = new UserPrivilege();
         userPrivilege1.grant("select", "testDB2.*");
         userPrivilege1.grant("select", "testDB.testTable2");
         List<String> testCols = new LinkedList<>(); testCols.add("col1");testCols.add("col2");
@@ -145,12 +145,12 @@ public class UserPrivilegeTest {
         assertThat(child1_1.equals(child2_1),is(true));
         assertThat(child1_1.getOffspring().contains(child2_1_1),is(true));
         assertThat(tree1.equals(tree2),is(true));
-        userPrivilegeStdNoRole = new UserPrivilege(new UserInformation("testUser","pw"));
-        userPrivilegeNoRole1 = new UserPrivilege(new UserInformation("testUser","pw"));
-        userPrivilegeNoRole2 = new UserPrivilege(new UserInformation("testUser","pw"));
-        userPrivilegeStdRole = new UserPrivilege(new UserInformation("testUser","pw"));
-        userPrivilegeRole1 = new UserPrivilege(new UserInformation("testUser","pw"));
-        userPrivilegeRole2 = new UserPrivilege(new UserInformation("testUser","pw"));
+        userPrivilegeStdNoRole = new UserPrivilege();
+        userPrivilegeNoRole1 = new UserPrivilege();
+        userPrivilegeNoRole2 = new UserPrivilege();
+        userPrivilegeStdRole = new UserPrivilege();
+        userPrivilegeRole1 = new UserPrivilege();
+        userPrivilegeRole2 = new UserPrivilege();
         userPrivilegeStdNoRole.grant("select", "testDB2.*");
         userPrivilegeNoRole1.grant("select", "testDB2 .*");
         userPrivilegeNoRole2.grant("select", "testDB3.*");

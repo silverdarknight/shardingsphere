@@ -13,13 +13,7 @@ import java.util.*;
 @Setter
 public class UserPrivilege extends PrivilegeModel {
 
-    private UserInformation userInformation;
-
     private HashSet<RolePrivilege> roles = new HashSet<>();
-
-    public UserPrivilege(UserInformation userInformation){
-        this.setUserInformation(userInformation);
-    }
 
     public List<String> getRolesName(){
         List<String> rolesName = new LinkedList<>();
@@ -74,13 +68,12 @@ public class UserPrivilege extends PrivilegeModel {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         UserPrivilege that = (UserPrivilege) o;
-        return Objects.equals(this.getUserInformation(), that.getUserInformation()) &&
-                Objects.equals(roles, that.roles) &&
+        return Objects.equals(roles, that.roles) &&
                 super.equals(that);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), this.getUserInformation(), roles);
+        return Objects.hash(super.hashCode(), roles);
     }
 }

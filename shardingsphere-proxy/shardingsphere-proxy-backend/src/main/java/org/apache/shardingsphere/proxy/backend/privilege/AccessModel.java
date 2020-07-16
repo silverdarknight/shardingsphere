@@ -1,7 +1,10 @@
 package org.apache.shardingsphere.proxy.backend.privilege;
 
 import com.sun.org.apache.xpath.internal.operations.Bool;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
+import org.apache.shardingsphere.proxy.backend.privilege.common.PrivilegeActionType;
 import org.apache.shardingsphere.proxy.backend.privilege.impl.RolePrivilege;
 import org.apache.shardingsphere.proxy.backend.privilege.impl.UserInformation;
 import org.apache.shardingsphere.proxy.backend.privilege.impl.UserPrivilege;
@@ -14,18 +17,19 @@ import java.util.*;
 
 
 @Getter
+@Setter(value = AccessLevel.PRIVATE)
 public class AccessModel implements AccessExecutorWrapper{
-
-    private Map<UserInformation, UserPrivilege> usersPrivilege = new HashMap<>();
-
-    private Map<String, RolePrivilege> rolesPrivileges = new HashMap<>();
 
     private Map<String, UserInformation> userInformationMap = new HashMap<>();
 
-    private Collection<UserInformation> validUserGroup = new HashSet<>();
+    private Map<String, UserPrivilege> usersPrivilege = new HashMap<>();
+
+    private Collection<String> invalidUserGroup = new HashSet<>();
+
+    private Map<String, RolePrivilege> rolesPrivileges = new HashMap<>();
 
     public AccessModel(YamlAccessModel yamlAccessModel){
-        // role
+        // role privileges
         Iterator<Map.Entry<String, YamlPrivilegeConfiguration>> roleIterator =  yamlAccessModel.getRoleList().entrySet().iterator();
         while (roleIterator.hasNext()){
             Map.Entry<String, YamlPrivilegeConfiguration> kv = roleIterator.next();
@@ -33,68 +37,50 @@ public class AccessModel implements AccessExecutorWrapper{
             tmpRolePrivilege.constructModel(kv.getValue());
             this.addRole(tmpRolePrivilege);
         }
-        //user
         Iterator<Map.Entry<String, YamlUserPrivilegeConfiguration>> userIterator =  yamlAccessModel.getUserList().entrySet().iterator();
         while (userIterator.hasNext()){
             Map.Entry<String, YamlUserPrivilegeConfiguration> kv = userIterator.next();
             YamlUserPrivilegeConfiguration curConfig = kv.getValue();
-            UserInformation tmpUserInformation = this.addUser(kv.getKey(),curConfig.getPassword());
-            UserPrivilege tmpUserPrivilege = new UserPrivilege(tmpUserInformation);
-            Iterator<String> roleNamesIterator = curConfig.getRoles().iterator();
-            while (roleNamesIterator.hasNext()){
-                String roleName = roleNamesIterator.next();
-                tmpUserPrivilege.grant(this.getRolePrivilege(roleName));
+            String userName = kv.getKey();
+            // user information
+            UserInformation tmpUserInformation = this.addUser(userName,curConfig.getPassword());
+            this.getUserInformationMap().put(userName,tmpUserInformation);
+            try {
+                // user privileges
+                UserPrivilege tmpUserPrivilege = new UserPrivilege();
+                Iterator<String> roleNamesIterator = curConfig.getRoles().iterator();
+                while (roleNamesIterator.hasNext()){
+                    String roleName = roleNamesIterator.next();
+                    tmpUserPrivilege.grant(this.getRolePrivilege(roleName));
+                }
+                tmpUserPrivilege.constructModel(curConfig.getPrivileges());
+                this.addUserPrivilege(tmpUserInformation, tmpUserPrivilege);
             }
-            tmpUserPrivilege.constructModel(curConfig.getPrivileges());
-            this.addUserPrivilege(tmpUserPrivilege);
+            catch (Exception e){
+                //
+            }
         }
+        // invalid group
+        this.getInvalidUserGroup().addAll(yamlAccessModel.getInvalidGroup());
     }
 
     // search
-    public Boolean containsUser(String userName){
+    private Boolean containsUser(String userName){
         return userInformationMap.containsKey(userName);
     }
 
-    public Boolean containsUserPrivilege(String userName){
-        userName = userName.trim();
-        UserPrivilege userPrivilege = this.getUserPrivilege(userName);
-        if(userPrivilege == null)
-            return false;
-        else
-            return true;
-    }
-
-    public Boolean containsRole(String roleName){
+    private Boolean containsRole(String roleName){
         roleName = roleName.trim();
         return this.getRolesPrivileges().containsKey(roleName);
     }
 
-    public Boolean userAvailable(String userName){
-        Iterator<UserInformation> userInformationIterator = validUserGroup.iterator();
-        while (userInformationIterator.hasNext()){
-            UserInformation userInformation = userInformationIterator.next();
-            if(userInformation.getUserName().equals(userName)) return true;
-        }
-        return false;
-    }
-
-    public UserInformation getUser(String userName){
+    private UserInformation getUser(String userName){
         if(!this.getUserInformationMap().containsKey(userName))
             throw new ShardingSphereException("No such user named :" + userName);
         return this.getUserInformationMap().get(userName);
     }
 
-    public Collection<UserInformation> getUser(List<String> userNames){
-        Collection<UserInformation> userSet = new HashSet<>();
-        Iterator<String> iterator = userNames.iterator();
-        while (iterator.hasNext()){
-            String curUserName = iterator.next();
-            userSet.add(this.getUser(curUserName));
-        }
-        return userSet;
-    }
-
-    public UserPrivilege getUserPrivilege(String userName){
+    private UserPrivilege getUserPrivilege(String userName){
         UserInformation userInformation = this.getUser(userName);
         UserPrivilege userPrivilege = this.getUsersPrivilege().get(userInformation);
         if(userPrivilege == null)
@@ -103,35 +89,15 @@ public class AccessModel implements AccessExecutorWrapper{
             return userPrivilege;
     }
 
-    public Collection<UserPrivilege> getUserPrivileges(List<String> userNames){
-        Collection<UserPrivilege> users = new HashSet<>();
-        Iterator<String> iterator = userNames.iterator();
-        while (iterator.hasNext()){
-            String curUserName = iterator.next();
-            users.add(this.getUserPrivilege(curUserName));
-        }
-        return users;
-    }
-
-    public RolePrivilege getRolePrivilege(String roleName){
+    private RolePrivilege getRolePrivilege(String roleName){
         roleName = roleName.trim();
         if(this.containsRole(roleName))
             return this.getRolesPrivileges().get(roleName);
         throw new ShardingSphereException("No such role named :" + roleName);
     }
 
-    public Collection<RolePrivilege> getRolePrivileges(List<String> roleNames){
-        Collection<RolePrivilege> roles = new HashSet<>();
-        Iterator<String> iterator = roleNames.iterator();
-        while (iterator.hasNext()){
-            String curRoleName = iterator.next();
-            roles.add(this.getRolePrivilege(curRoleName));
-        }
-        return roles;
-    }
-
     // add
-    public UserInformation addUser(String userName, String password){
+    private UserInformation addUser(String userName, String password){
         if(this.containsUser(userName))
             throw new ShardingSphereException("Already has a user called : " + userName);
         UserInformation userInformation = new UserInformation(userName, password);
@@ -139,9 +105,8 @@ public class AccessModel implements AccessExecutorWrapper{
         return userInformation;
     }
 
-    private UserPrivilege addUserPrivilege(UserPrivilege userPrivilege){
-        this.getUsersPrivilege().put(userPrivilege.getUserInformation(),
-                userPrivilege);
+    private UserPrivilege addUserPrivilege(UserInformation userInformation, UserPrivilege userPrivilege){
+        this.getUsersPrivilege().put(userInformation.getUserName(), userPrivilege);
         return userPrivilege;
     }
 
@@ -154,119 +119,242 @@ public class AccessModel implements AccessExecutorWrapper{
         throw new ShardingSphereException("Already has a role called : " + rolePrivilege.getRoleName());
     }
 
-    // delete
-    public void removeRole(RolePrivilege rolePrivilege){
-        this.getRolesPrivileges().remove(rolePrivilege.getRoleName());
-    }
-
-
     @Override
-    public Boolean checkUserPrivilege(String userName, String privilegeType, String database, String table, List<String> column) {
-        return null;
-    }
-
-    @Override
-    public Boolean checkUserPrivilege(String userName, String privilegeType, String database, String table, String column) {
-        return null;
+    public void createUser(String byUserName, String userName, String password) {
+        if(checkHavePermission(byUserName, PrivilegeAction.CREATE)){
+            UserInformation information = new UserInformation(userName, password);
+            if(!this.getUserInformationMap().containsKey(userName)){
+                this.getUserInformationMap().put(userName, information);
+            }
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public Boolean checkUserPrivilege(String userName, String privilegeType, String database, String table) {
-        return null;
+    public void createRole(String byUserName, String roleName) {
+        if(checkHavePermission(byUserName, PrivilegeAction.CREATE)){
+            RolePrivilege information = new RolePrivilege(roleName);
+            if(!this.getRolesPrivileges().containsKey(roleName)){
+                this.getRolesPrivileges().put(roleName, information);
+            }
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public Boolean checkUserPrivilege(String userName, String privilegeType, String database) {
-        return null;
+    public void removeUser(String byUserName, String userName) {
+        if(checkHavePermission(byUserName, PrivilegeAction.REMOVE)){
+            getInvalidUserGroup().remove(userName);
+            getUserInformationMap().remove(userName);
+            getUsersPrivilege().remove(userName);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public void createUser(String userName, String password) {
-
+    public void removeRole(String byUserName, String roleName) {
+        if(checkHavePermission(byUserName, PrivilegeAction.REMOVE)){
+            RolePrivilege targetRole = getRolePrivilege(roleName);
+            // users revoke role
+            Iterator<Map.Entry<String, UserPrivilege>> userPrivilegeIterator = getUsersPrivilege()
+                    .entrySet().iterator();
+            while (userPrivilegeIterator.hasNext()){
+                Map.Entry<String, UserPrivilege> kv = userPrivilegeIterator.next();
+                try {
+                    kv.getValue().revoke(targetRole);
+                }
+                catch (Exception e){
+                    //
+                }
+            }
+            // remove role
+            getRolesPrivileges().remove(roleName);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public void removeUser(String userName) {
-
+    public void disableUser(String byUserName, String userName) {
+        if(checkHavePermission(byUserName, PrivilegeAction.DISABLE)){
+            getInvalidUserGroup().add(userName);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public void grantUser(String userName, String privilegeType, String database, String table, List<String> column) {
-
+    public Boolean checkUserPrivilege(String byUserName, String userName, String privilegeType, String database, String table, List<String> column) {
+        if(checkHavePermission(byUserName, PrivilegeAction.CHECK)){
+            Iterator<String> iterator = column.iterator();
+            while (iterator.hasNext()){
+                if(!checkUserPrivilege(byUserName,userName,privilegeType,database,table,iterator.next()))
+                    return false;
+            }
+            return true;
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public void grantUser(String userName, String privilegeType, String database, String table) {
-
+    public Boolean checkUserPrivilege(String byUserName, String userName, String privilegeType, String database, String table, String column) {
+        if(checkHavePermission(byUserName, PrivilegeAction.CHECK)){
+            return getUsersPrivilege().get(userName).checkPrivilege(privilegeType,database,table,column);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public void grantUser(String userName, String privilegeType, String database) {
-
+    public Boolean checkUserPrivilege(String byUserName, String userName, String privilegeType, String information, String table) {
+        if(checkHavePermission(byUserName, PrivilegeAction.CHECK)){
+            return getUsersPrivilege().get(userName).checkPrivilege(privilegeType,information,table);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public void grantUser(String userName, String roleName) {
-
+    public Boolean checkRolePrivilege(String byUserName, String roleName, String privilegeType, String database, String table, List<String> column) {
+        if(checkHavePermission(byUserName, PrivilegeAction.CHECK)){
+            Iterator<String> iterator = column.iterator();
+            while (iterator.hasNext()){
+                if(!checkRolePrivilege(byUserName,roleName,privilegeType,database,table,iterator.next()))
+                    return false;
+            }
+            return true;
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public void revokeUser(String userName, String privilegeType, String database, String table, List<String> column) {
-
+    public Boolean checkRolePrivilege(String byUserName, String roleName, String privilegeType, String database, String table, String column) {
+        if(checkHavePermission(byUserName, PrivilegeAction.CHECK)){
+            return getRolesPrivileges().get(roleName).checkPrivilege(privilegeType,database,table,column);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public void revokeUser(String userName, String privilegeType, String database, String table) {
-
+    public Boolean checkRolePrivilege(String byUserName, String roleName, String privilegeType, String information, String table) {
+        if(checkHavePermission(byUserName, PrivilegeAction.CHECK)){
+            return getRolesPrivileges().get(roleName).checkPrivilege(privilegeType,information,table);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public void revokeUser(String userName, String privilegeType, String database) {
-
+    public void grantUser(String byUserName, String userName, String privilegeType, String database, String table, List<String> column) {
+        if(checkHavePermission(byUserName, PrivilegeAction.GRANT)){
+            getUsersPrivilege().get(userName).grant(privilegeType,database,table,column);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public void revokeUser(String userName, String roleName) {
-
+    public void grantUser(String byUserName, String userName, String privilegeType, String database, String table) {
+        if(checkHavePermission(byUserName, PrivilegeAction.GRANT)){
+            getUsersPrivilege().get(userName).grant(privilegeType,database,table);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public void createRole(String roleName) {
-
+    public void grantUser(String byUserName, String userName, String privilegeType, String information) {
+        if(checkHavePermission(byUserName, PrivilegeAction.GRANT)){
+            getUsersPrivilege().get(userName).grant(privilegeType,information);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public void removeRole(String roleName) {
-
+    public void grantUser(String byUserName, String userName, String roleName) {
+        if(checkHavePermission(byUserName, PrivilegeAction.GRANT)){
+            RolePrivilege rolePrivilege = getRolePrivilege(roleName);
+            getUsersPrivilege().get(userName).grant(rolePrivilege);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public void grantRole(String roleName, String privilegeType, String database, String table, List<String> column) {
-
+    public void grantRole(String byUserName, String roleName, String privilegeType, String database, String table, List<String> column) {
+        if(checkHavePermission(byUserName, PrivilegeAction.GRANT)){
+            getRolesPrivileges().get(roleName).grant(privilegeType,database,table,column);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public void grantRole(String roleName, String privilegeType, String database, String table) {
-
+    public void grantRole(String byUserName, String roleName, String privilegeType, String database, String table) {
+        if(checkHavePermission(byUserName, PrivilegeAction.GRANT)){
+            getRolesPrivileges().get(roleName).grant(privilegeType,database,table);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public void grantRole(String roleName, String privilegeType, String database) {
-
+    public void grantRole(String byUserName, String roleName, String privilegeType, String information) {
+        if(checkHavePermission(byUserName, PrivilegeAction.GRANT)){
+            getRolesPrivileges().get(roleName).grant(privilegeType,information);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public void revokeRole(String roleName, String privilegeType, String database, String table, List<String> column) {
-
+    public void revokeUser(String byUserName, String userName, String privilegeType, String database, String table, List<String> column) {
+        if(checkHavePermission(byUserName, PrivilegeAction.REVOKE)){
+            getUsersPrivilege().get(userName).revoke(privilegeType,database,table,column);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public void revokeRole(String roleName, String privilegeType, String database, String table) {
-
+    public void revokeUser(String byUserName, String userName, String privilegeType, String database, String table) {
+        if(checkHavePermission(byUserName, PrivilegeAction.REVOKE)){
+            getUsersPrivilege().get(userName).revoke(privilegeType,database,table);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
     }
 
     @Override
-    public void revokeRole(String roleName, String privilegeType, String database) {
+    public void revokeUser(String byUserName, String userName, String privilegeType, String information) {
+        if(checkHavePermission(byUserName, PrivilegeAction.REVOKE)){
+            getUsersPrivilege().get(userName).revoke(privilegeType,information);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
+    }
 
+    @Override
+    public void revokeUser(String byUserName, String userName, String roleName) {
+        if(checkHavePermission(byUserName, PrivilegeAction.REVOKE)){
+            RolePrivilege rolePrivilege = getRolePrivilege(roleName);
+            getUsersPrivilege().get(userName).revoke(rolePrivilege);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
+    }
+
+    @Override
+    public void revokeRole(String byUserName, String roleName, String privilegeType, String database, String table, List<String> column) {
+        if(checkHavePermission(byUserName, PrivilegeAction.REVOKE)){
+            getRolePrivilege(roleName).revoke(privilegeType,database,table,column);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
+    }
+
+    @Override
+    public void revokeRole(String byUserName, String roleName, String privilegeType, String database, String table) {
+        if(checkHavePermission(byUserName, PrivilegeAction.REVOKE)){
+            getRolePrivilege(roleName).revoke(privilegeType,database,table);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
+    }
+
+    @Override
+    public void revokeRole(String byUserName, String roleName, String privilegeType, String information) {
+        if(checkHavePermission(byUserName, PrivilegeAction.REVOKE)){
+            getRolePrivilege(roleName).revoke(privilegeType,information);
+        }
+        else throw new ShardingSphereException("You do not have this permission.");
+    }
+
+    private Boolean checkHavePermission(String byUser, String actionType){
+        if(getInvalidUserGroup().contains(byUser)) return false;
+        return true;
     }
 }
