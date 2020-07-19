@@ -6,11 +6,12 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
 
+import java.io.Serializable;
 import java.util.*;
 
 @Getter(value = AccessLevel.PROTECTED)
 @Setter(value = AccessLevel.PRIVATE)
-public class PrivilegePathTree {
+public class PrivilegePathTree implements Serializable {
 
     private PrivilegePathTreeNode root = new PrivilegePathTreeNode();
 

@@ -6,12 +6,13 @@ import org.apache.shardingsphere.proxy.backend.privilege.PrivilegeModel;
 import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegeConfiguration;
 import org.apache.shardingsphere.proxy.config.yaml.YamlUserPrivilegeConfiguration;
 
+import java.io.Serializable;
 import java.util.*;
 
 
 @Getter
 @Setter
-public class UserPrivilege extends PrivilegeModel {
+public class UserPrivilege extends PrivilegeModel implements Serializable {
 
     private HashSet<RolePrivilege> roles = new HashSet<>();
 

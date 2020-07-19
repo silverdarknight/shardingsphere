@@ -8,6 +8,7 @@ import org.apache.shardingsphere.proxy.backend.privilege.impl.RolePrivilege;
 import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegeConfiguration;
 import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegePath;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -15,7 +16,7 @@ import java.util.*;
  */
 @Getter
 @Setter
-public abstract class PrivilegeModel {
+public abstract class PrivilegeModel implements Serializable {
 
     public final static int INITIAL_PRIVILEGE_LENGTH = 8;
 

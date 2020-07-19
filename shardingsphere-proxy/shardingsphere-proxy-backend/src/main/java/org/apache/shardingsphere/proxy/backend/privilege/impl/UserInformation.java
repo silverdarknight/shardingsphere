@@ -3,11 +3,12 @@ package org.apache.shardingsphere.proxy.backend.privilege.impl;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 @Getter
 @Setter
-public class UserInformation {
+public class UserInformation implements Serializable {
 
     public static String ROOT_USER = "ROOT"
             , DEFAULT_USER = "ANONYMOUS";

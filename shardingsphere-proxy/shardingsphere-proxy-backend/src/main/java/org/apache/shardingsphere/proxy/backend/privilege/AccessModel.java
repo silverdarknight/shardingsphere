@@ -13,12 +13,13 @@ import org.apache.shardingsphere.proxy.config.yaml.YamlAccessModel;
 import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegeConfiguration;
 import org.apache.shardingsphere.proxy.config.yaml.YamlUserPrivilegeConfiguration;
 
+import java.io.*;
 import java.util.*;
 
 
 @Getter
 @Setter(value = AccessLevel.PRIVATE)
-public class AccessModel implements AccessExecutorWrapper{
+public class AccessModel implements AccessExecutorWrapper, Serializable {
 
     private Map<String, UserInformation> userInformationMap = new HashMap<>();
 
@@ -64,7 +65,86 @@ public class AccessModel implements AccessExecutorWrapper{
         this.getInvalidUserGroup().addAll(yamlAccessModel.getInvalidGroup());
     }
 
-    // search
+    public byte[] toBytes() throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(this);
+        oos.flush();
+        return bos.toByteArray();
+    }
+
+    public byte[] informationToBytes() throws IOException{
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(getUserInformationMap());
+        oos.flush();
+        return bos.toByteArray();
+    }
+
+    public byte[] invalidGroupToBytes() throws IOException{
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(getInvalidUserGroup());
+        oos.flush();
+        return bos.toByteArray();
+    }
+
+    public byte[] rolePrivilegesToBytes() throws IOException{
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(getRolesPrivileges());
+        oos.flush();
+        return bos.toByteArray();
+    }
+
+    public byte[] usersPrivilegeToBytes() throws IOException{
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(getUsersPrivilege());
+        oos.flush();
+        return bos.toByteArray();
+    }
+
+    public static Map<String, UserInformation> deserializeUserInformation(byte[] serializeData)
+            throws IOException, ClassNotFoundException{
+        ByteArrayInputStream bis = new ByteArrayInputStream(serializeData);
+        ObjectInputStream ois = new ObjectInputStream(bis);
+        Map<String, UserInformation> model = (Map<String, UserInformation>) ois.readObject();
+        return model;
+    }
+
+    public static Collection<String> deserializeInvalidGroup(byte[] serializeData)
+            throws IOException, ClassNotFoundException{
+        ByteArrayInputStream bis = new ByteArrayInputStream(serializeData);
+        ObjectInputStream ois = new ObjectInputStream(bis);
+        Collection<String> model = (Collection<String>) ois.readObject();
+        return model;
+    }
+
+    public static Map<String, RolePrivilege> deserializeRolePrivileges(byte[] serializeData)
+            throws IOException, ClassNotFoundException{
+        ByteArrayInputStream bis = new ByteArrayInputStream(serializeData);
+        ObjectInputStream ois = new ObjectInputStream(bis);
+        Map<String, RolePrivilege> model = (Map<String, RolePrivilege>) ois.readObject();
+        return model;
+    }
+
+    public static Map<String, UserPrivilege> deserializeUsersPrivilege(byte[] serializeData)
+            throws IOException, ClassNotFoundException{
+        ByteArrayInputStream bis = new ByteArrayInputStream(serializeData);
+        ObjectInputStream ois = new ObjectInputStream(bis);
+        Map<String, UserPrivilege> model = (Map<String, UserPrivilege>) ois.readObject();
+        return model;
+    }
+
+    public static AccessModel deserialize(byte[] serializeData)
+            throws IOException, ClassNotFoundException{
+        ByteArrayInputStream bis = new ByteArrayInputStream(serializeData);
+        ObjectInputStream ois = new ObjectInputStream(bis);
+        AccessModel accessModel = (AccessModel) ois.readObject();
+        return accessModel;
+    }
+
     private Boolean containsUser(String userName){
         return userInformationMap.containsKey(userName);
     }
@@ -96,7 +176,6 @@ public class AccessModel implements AccessExecutorWrapper{
         throw new ShardingSphereException("No such role named :" + roleName);
     }
 
-    // add
     private UserInformation addUser(String userName, String password){
         if(this.containsUser(userName))
             throw new ShardingSphereException("Already has a user called : " + userName);
@@ -356,5 +435,21 @@ public class AccessModel implements AccessExecutorWrapper{
     private Boolean checkHavePermission(String byUser, String actionType){
         if(getInvalidUserGroup().contains(byUser)) return false;
         return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AccessModel that = (AccessModel) o;
+        return Objects.equals(userInformationMap, that.userInformationMap) &&
+                Objects.equals(usersPrivilege, that.usersPrivilege) &&
+                Objects.equals(invalidUserGroup, that.invalidUserGroup) &&
+                Objects.equals(rolesPrivileges, that.rolesPrivileges);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(userInformationMap, usersPrivilege, invalidUserGroup, rolesPrivileges);
     }
 }

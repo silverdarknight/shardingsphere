@@ -5,10 +5,11 @@ import lombok.Setter;
 import org.apache.shardingsphere.proxy.backend.privilege.PrivilegeModel;
 import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegeConfiguration;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 
-public class RolePrivilege extends PrivilegeModel {
+public class RolePrivilege extends PrivilegeModel implements Serializable {
 
     @Getter
     @Setter

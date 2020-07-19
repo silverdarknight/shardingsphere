@@ -23,8 +23,8 @@ import java.util.List;
  *
  *        check     -privilegeType-name-pathParameters
  */
-@Getter(value = AccessLevel.PRIVATE)
-@Setter(value = AccessLevel.PRIVATE)
+@Getter
+@Setter
 public final class PrivilegeAction {
 
     public static String CREATE="create"
@@ -35,9 +35,8 @@ public final class PrivilegeAction {
             ,CHECK = "check";
 
     // action by user
-    private String actionUser = UserInformation.DEFAULT_USER;
+    private String byUser = UserInformation.DEFAULT_USER;
 
-    // action parameters (check user, grant revoke user/role)
     private String name;
 
     private Boolean isUser;
@@ -54,61 +53,7 @@ public final class PrivilegeAction {
 
     private Boolean privilegePathValid;
 
-    // action parameters (add remove disable user/role)
-
-    // action parameters (update userInfo) (not needed yet)
-
-    public PrivilegeAction(String userName, String actionType, String dbName, String table){
-        this.setName(userName);
-        this.setGrantActionType(actionType.toLowerCase());
-        try {
-            setDbName(dbName);
-            setTableName(table);
-        }
-        catch (Exception e){
-            this.privilegePathValid = false;
-        }
-    }
-
-    public PrivilegeAction(String userName, String actionType, String dbName, String table, List<String> cols){
-        this.setName(userName);
-        this.setGrantActionType(actionType.toLowerCase());
-        try {
-            setDbName(dbName);
-            setTableName(table);
-            setColumns(cols);
-        }
-        catch (Exception e){
-            this.privilegePathValid = false;
-        }
-    }
-
-    public PrivilegeAction(String userName, String actionType, String dbName, String table, String col){
-        this.setName(userName);
-        this.setGrantActionType(actionType.toLowerCase());
-        try {
-            setDbName(dbName);
-            setTableName(table);
-            getColumns().add(col);
-        }
-        catch (Exception e){
-            this.privilegePathValid = false;
-        }
-    }
-
-    public void asRole(){
-        this.setIsUser(false);
-    }
-
-    public void asUser(){
-        this.setIsUser(true);
-    }
-
-    public Boolean isUser(){
-        return getIsUser();
-    }
-
-    private String[] splitInformation(String information){
+    public String[] splitInformation(String information){
         String[] dbAndTable = information.split("\\.");
         return dbAndTable;
     }
