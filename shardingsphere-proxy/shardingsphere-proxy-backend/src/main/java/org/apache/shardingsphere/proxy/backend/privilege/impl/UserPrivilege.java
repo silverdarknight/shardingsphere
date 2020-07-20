@@ -14,53 +14,22 @@ import java.util.*;
 @Setter
 public class UserPrivilege extends PrivilegeModel implements Serializable {
 
-    private HashSet<RolePrivilege> roles = new HashSet<>();
+    private static final long serialVersionUID = -8606546448540297926L;
+    
+    private HashSet<String> roles = new HashSet<>();
 
     public List<String> getRolesName(){
         List<String> rolesName = new LinkedList<>();
-        Iterator<RolePrivilege> rolesIterator = this.getRoles().iterator();
-        while (rolesIterator.hasNext()){
-            rolesName.add(rolesIterator.next().getRoleName());
-        }
+        rolesName.addAll(getRoles());
         return rolesName;
     }
 
-    public void grant(RolePrivilege role){
+    public void grant(String role){
         this.getRoles().add(role);
     }
 
-    public void revoke(RolePrivilege role){
+    public void revoke(String role){
         this.getRoles().remove(role);
-    }
-
-    @Override
-    public boolean checkPrivilege(String privilegeType, String dbName, String tableName, String column) {
-        Iterator<RolePrivilege> iterator = this.getRoles().iterator();
-        while (iterator.hasNext()){
-            RolePrivilege curRole = iterator.next();
-            if(curRole.checkPrivilege(privilegeType, dbName, tableName, column)) return true;
-        }
-        return super.checkPrivilege(privilegeType, dbName, tableName, column);
-    }
-
-    @Override
-    public boolean checkPrivilege(String privilegeType, String dbName, String tableName) {
-        Iterator<RolePrivilege> iterator = this.getRoles().iterator();
-        while (iterator.hasNext()){
-            RolePrivilege curRole = iterator.next();
-            if(curRole.checkPrivilege(privilegeType, dbName, tableName)) return true;
-        }
-        return super.checkPrivilege(privilegeType, dbName, tableName);
-    }
-
-    @Override
-    public boolean checkPrivilege(String privilegeType, String information) {
-        Iterator<RolePrivilege> iterator = this.getRoles().iterator();
-        while (iterator.hasNext()){
-            RolePrivilege curRole = iterator.next();
-            if(curRole.checkPrivilege(privilegeType, information)) return true;
-        }
-        return super.checkPrivilege(privilegeType, information);
     }
 
     @Override

@@ -44,6 +44,7 @@ public class AccessModelTest {
         assertThat(accessModel.getUserInformationMap().get("user3").getPassword(),is("pw3"));
         assertThat(accessModel.getUsersPrivilege().containsKey("user3"),is(false));
         assertThat(accessModel.getUsersPrivilege().get("user1").checkPrivilege("select","testDB.testTable"),is(false));
+        assertThat(accessModel.getUsersPrivilege().get("user1").checkPrivilege("delete","testDB.testTable"),is(true));
         assertThat(accessModel.getUsersPrivilege().get("user1").checkPrivilege("select","testDB.testTable.col1"),is(true));
     }
 }

@@ -102,7 +102,7 @@ userList:
             - 'col2'
   user2:
     password:
-      pw2
+      pw23
     roles:
       - role1
       - role2

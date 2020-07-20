@@ -10,6 +10,8 @@ import java.util.Objects;
 @Setter
 public class UserInformation implements Serializable {
 
+    private static final long serialVersionUID = 2847558164326116634L;
+
     public static String ROOT_USER = "ROOT"
             , DEFAULT_USER = "ANONYMOUS";
 

@@ -12,6 +12,8 @@ import java.util.*;
 @Setter(value = AccessLevel.PROTECTED)
 public class PrivilegePathTreeNode implements Serializable {
 
+    private static final long serialVersionUID = 7915642612167894631L;
+
     private String pathValue = "";
 
     private Boolean isRegNode = false;

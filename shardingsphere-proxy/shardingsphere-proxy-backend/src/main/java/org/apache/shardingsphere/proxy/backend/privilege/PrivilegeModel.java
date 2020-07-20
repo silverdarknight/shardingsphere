@@ -18,6 +18,8 @@ import java.util.*;
 @Setter
 public abstract class PrivilegeModel implements Serializable {
 
+    private static final long serialVersionUID = -7687165906415647698L;
+
     public final static int INITIAL_PRIVILEGE_LENGTH = 8;
 
     protected Map<PrivilegeActionType, PrivilegePathTree> privilegePaths = new HashMap<>(PrivilegeActionType.values().length);
@@ -55,7 +57,7 @@ public abstract class PrivilegeModel implements Serializable {
                         yamlPrivilegePath.getInformation(),
                         yamlPrivilegePath.getCols());
             else
-                this.grant("insert",
+                this.grant("delete",
                         yamlPrivilegePath.getInformation());
         }
         // select

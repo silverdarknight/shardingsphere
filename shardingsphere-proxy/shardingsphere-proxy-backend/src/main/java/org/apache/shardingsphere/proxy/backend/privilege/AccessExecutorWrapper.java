@@ -38,12 +38,6 @@ public interface AccessExecutorWrapper {
 
     public Boolean checkUserPrivilege(String byUserName, String userName, String privilegeType, String information, String table);
 
-    public Boolean checkRolePrivilege(String byUserName, String roleName, String privilegeType, String database, String table, List<String> column);
-
-    public Boolean checkRolePrivilege(String byUserName, String roleName, String privilegeType, String database, String table, String column);
-
-    public Boolean checkRolePrivilege(String byUserName, String roleName, String privilegeType, String information, String table);
-
     public void grantUser(String byUserName, String userName, String privilegeType, String database, String table, List<String> column);
 
     public void grantUser(String byUserName, String userName, String privilegeType, String database, String table);

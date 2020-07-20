@@ -13,6 +13,8 @@ import java.util.*;
 @Setter(value = AccessLevel.PRIVATE)
 public class PrivilegePathTree implements Serializable {
 
+    private static final long serialVersionUID = -4573425355218905810L;
+
     private PrivilegePathTreeNode root = new PrivilegePathTreeNode();
 
     public Boolean checkPath(String dbName, String tableName){

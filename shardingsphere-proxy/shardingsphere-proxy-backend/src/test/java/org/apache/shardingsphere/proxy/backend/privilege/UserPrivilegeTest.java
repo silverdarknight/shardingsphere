@@ -50,9 +50,9 @@ public class UserPrivilegeTest {
         List<String> testCols = new LinkedList<>(); testCols.add("col1");testCols.add("col2");
         rolePrivilege.grant("select", "*.*"); // select all privilege
         rolePrivilege.grant("delete", "testDB_role.testTable_role",testCols); // delete testDB.testTable.col1;col2
-        userPrivilege1.grant(rolePrivilege);
+        userPrivilege1.grant(rolePrivilege.getRoleName());
         assertThat(userPrivilege1.getRolesName().size(),is(1));
-        userPrivilege1.grant(rolePrivilege);
+        userPrivilege1.grant(rolePrivilege.getRoleName());
         assertThat(userPrivilege1.getRolesName().size(),is(1));
         // information (database / information)
         userPrivilege1 = new UserPrivilege();
@@ -87,9 +87,9 @@ public class UserPrivilegeTest {
         rolePrivilege.grant("select", "*.*"); // select all privilege
         testCols = new LinkedList<>(); testCols.add("col1");testCols.add("col2");
         rolePrivilege.grant("delete", "testDB_role.testTable_role",testCols); // delete testDB.testTable.col1;col2
-        userPrivilege1.revoke(rolePrivilege);
+        userPrivilege1.revoke(rolePrivilege.getRoleName());
         assertThat(userPrivilege1.getRolesName().size(),is(0));
-        userPrivilege1.revoke(rolePrivilege);
+        userPrivilege1.revoke(rolePrivilege.getRoleName());
         assertThat(userPrivilege1.getRolesName().size(),is(0));
         // information (database / information)
         List<String> cols = new LinkedList<>(); cols.add("col1");
@@ -104,28 +104,6 @@ public class UserPrivilegeTest {
         cols = new LinkedList<>(); cols.add("col3");
         userPrivilege1.revoke("select","testDB", "testTable",cols);
         assertThat(userPrivilege1.checkPrivilege("select","testDB.testTable.col3"),is(false));
-    }
-
-    @Test
-    public void userPrivilegeCheckInRole(){
-        UserPrivilege userPrivilege1;
-        userPrivilege1 = new UserPrivilege();
-        userPrivilege1.grant("select", "testDB2.*");
-        userPrivilege1.grant("select", "testDB.testTable2");
-        List<String> testCols = new LinkedList<>(); testCols.add("col1");testCols.add("col2");
-        userPrivilege1.grant("select", "testDB.testTable",testCols);
-        RolePrivilege rolePrivilege = new RolePrivilege("testRole");
-        rolePrivilege.grant("delete", "testDB_role.testTable_role",testCols); // delete testDB.testTable.col1;col2
-        userPrivilege1.grant(rolePrivilege);
-        // information (database / information)
-        assertThat(userPrivilege1.checkPrivilege("select","testDB.testTable2"),is(true));
-        assertThat(userPrivilege1.checkPrivilege("delete","testDB_role.testTable_role.col1"),is(true));
-        // database table
-        assertThat(userPrivilege1.checkPrivilege("select","testDB","testTable2"),is(true));
-        assertThat(userPrivilege1.checkPrivilege("delete","testDB_role","testTable_role"),is(false));
-        // database table column
-        assertThat(userPrivilege1.checkPrivilege("select","testDB","testTable","col1"),is(true));
-        assertThat(userPrivilege1.checkPrivilege("delete","testDB_role","testTable_role","col1"),is(true));
     }
 
     @Test

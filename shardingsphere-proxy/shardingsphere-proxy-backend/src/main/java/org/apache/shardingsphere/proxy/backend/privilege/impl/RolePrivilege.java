@@ -11,6 +11,8 @@ import java.util.Objects;
 
 public class RolePrivilege extends PrivilegeModel implements Serializable {
 
+    private static final long serialVersionUID = -1369825331445579126L;
+
     @Getter
     @Setter
     private String roleName;
