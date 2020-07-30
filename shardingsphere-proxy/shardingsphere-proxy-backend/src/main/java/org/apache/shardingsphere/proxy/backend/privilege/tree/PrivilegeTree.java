@@ -87,13 +87,15 @@ public class PrivilegeTree implements PrivilegeTreeWrapper, Serializable {
     @Override
     public void grantPath(String dbName, String tableName) {
         Boolean dbSuccess = root.addChild(dbName);
-        if(dbSuccess && !dbName.trim().equals("*")){
+        if(!dbName.trim().equals("*")) {
             PrivilegeDBNode dbNode = (PrivilegeDBNode) root.getChild(dbName);
-            if(!dbNode.addChild(tableName))
+            if (!dbNode.addChild(tableName))
                 throw new ShardingSphereException(PrivilegeExceptions.alreadyHasPrivilege);
-            else ((PrivilegeTableNode)dbNode.getChild(tableName)).setStar();
+            else if(!tableName.equals("*"))
+                ((PrivilegeTableNode) dbNode.getChild(tableName)).setStar();
         }
-        else throw new ShardingSphereException(PrivilegeExceptions.alreadyHasPrivilege);
+        else if(!dbSuccess)
+            throw new ShardingSphereException(PrivilegeExceptions.alreadyHasPrivilege);
     }
 
     /**
@@ -107,48 +109,53 @@ public class PrivilegeTree implements PrivilegeTreeWrapper, Serializable {
     @Override
     public void grantPath(String dbName, String tableName, List<String> colNames) {
         Boolean dbSuccess = root.addChild(dbName);
-        if(dbSuccess && !dbName.trim().equals("*")){
+        if(dbName.trim().equals("*") && !dbSuccess)
+            throw new ShardingSphereException(PrivilegeExceptions.alreadyHasPrivilege);
+        if(!dbName.trim().equals("*")){
             PrivilegeDBNode dbNode = (PrivilegeDBNode) root.getChild(dbName);
-            if(!dbNode.addChild(tableName))
+            Boolean tableSuccess = dbNode.addChild(tableName);
+            if(tableName.trim().equals("*") && !tableSuccess)
                 throw new ShardingSphereException(PrivilegeExceptions.alreadyHasPrivilege);
-            else {
-                if(!tableName.trim().equals("*")){
-                    PrivilegeTableNode tableNode = (PrivilegeTableNode) dbNode.getChild(tableName);
-                    Boolean needUpdate = false;
-                    Iterator<String> iterator = colNames.iterator();
-                    while (iterator.hasNext()){
-                        needUpdate = needUpdate || tableNode.addChild(iterator.next());
-                    }
-                    if(!needUpdate)
-                        throw new ShardingSphereException(PrivilegeExceptions.alreadyHasPrivilege);
+            if(!tableName.trim().equals("*")){
+                PrivilegeTableNode tableNode = (PrivilegeTableNode) dbNode.getChild(tableName);
+                Boolean needUpdate = false;
+                Iterator<String> iterator = colNames.iterator();
+                while (iterator.hasNext()){
+                    needUpdate = tableNode.addChild(iterator.next()) || needUpdate;
                 }
+                if(!needUpdate)
+                    throw new ShardingSphereException(PrivilegeExceptions.alreadyHasPrivilege);
             }
         }
-        else throw new ShardingSphereException(PrivilegeExceptions.alreadyHasPrivilege);
     }
 
     @Override
     public void grantPath(String dbName, String tableName, String colNames) {
         Boolean dbSuccess = root.addChild(dbName);
-        if(dbSuccess && !dbName.trim().equals("*")){
+        if(dbName.trim().equals("*") && !dbSuccess)
+            throw new ShardingSphereException(PrivilegeExceptions.alreadyHasPrivilege);
+        if(!dbName.trim().equals("*")){
             PrivilegeDBNode dbNode = (PrivilegeDBNode) root.getChild(dbName);
-            if(!dbNode.addChild(tableName))
+            Boolean tableSuccess = dbNode.addChild(tableName);
+            if(tableName.trim().equals("*") && !tableSuccess)
                 throw new ShardingSphereException(PrivilegeExceptions.alreadyHasPrivilege);
-            else {
-                if(!tableName.trim().equals("*")){
-                    PrivilegeTableNode tableNode = (PrivilegeTableNode) dbNode.getChild(tableName);
-                    if(!tableNode.addChild(colNames))
-                        throw new ShardingSphereException(PrivilegeExceptions.alreadyHasPrivilege);
-                }
+            if(!tableName.trim().equals("*")){
+                PrivilegeTableNode tableNode = (PrivilegeTableNode) dbNode.getChild(tableName);
+                if(!tableNode.addChild(colNames))
+                    throw new ShardingSphereException(PrivilegeExceptions.alreadyHasPrivilege);
             }
         }
-        else throw new ShardingSphereException(PrivilegeExceptions.alreadyHasPrivilege);
     }
 
     @Override
     public void revokePath(String dbName, String tableName) {
-        if(dbName.trim().equals("*") && !root.removeChild(dbName))
-            throw new ShardingSphereException(PrivilegeExceptions.noSuchGrantDefined);
+        if(dbName.trim().equals("*"))
+            if(!root.removeChild(dbName))
+                throw new ShardingSphereException(PrivilegeExceptions.noSuchGrantDefined);
+            else {
+                root.clearEmptyPaths();
+                return;
+            }
         if(root.containsNode(dbName)){
             PrivilegeDBNode dbNode = (PrivilegeDBNode) root.getChild(dbName);
             if(dbNode.containsNode(tableName)){
@@ -165,8 +172,13 @@ public class PrivilegeTree implements PrivilegeTreeWrapper, Serializable {
 
     @Override
     public void revokePath(String dbName, String tableName, List<String> colNames) {
-        if(dbName.trim().equals("*") && !root.removeChild(dbName))
-            throw new ShardingSphereException(PrivilegeExceptions.noSuchGrantDefined);
+        if(dbName.trim().equals("*")) // *.*.*
+            if(!root.removeChild(dbName))
+                throw new ShardingSphereException(PrivilegeExceptions.noSuchGrantDefined);
+            else{
+                root.clearEmptyPaths();
+                return;
+            }
         if(root.containsNode(dbName)){
             PrivilegeDBNode dbNode = (PrivilegeDBNode) root.getChild(dbName);
             if(dbNode.containsNode(tableName)){
@@ -175,7 +187,7 @@ public class PrivilegeTree implements PrivilegeTreeWrapper, Serializable {
                 Iterator<String> iterator = colNames.iterator();
                 while (iterator.hasNext()){
                     String col = iterator.next();
-                    removeSucc = removeSucc || tableNode.removeChild(col);
+                    removeSucc = tableNode.removeChild(col) || removeSucc;
                 }
                 if(!removeSucc)
                     throw new ShardingSphereException(PrivilegeExceptions.noSuchGrantDefined);
@@ -192,8 +204,13 @@ public class PrivilegeTree implements PrivilegeTreeWrapper, Serializable {
 
     @Override
     public void revokePath(String dbName, String tableName, String colNames) {
-        if(dbName.trim().equals("*") && !root.removeChild(dbName))
-            throw new ShardingSphereException(PrivilegeExceptions.noSuchGrantDefined);
+        if(dbName.trim().equals("*")) // *.*.*
+            if(!root.removeChild(dbName))
+                throw new ShardingSphereException(PrivilegeExceptions.noSuchGrantDefined);
+            else {
+                root.clearEmptyPaths();
+                return;
+            }
         if(root.containsNode(dbName)){
             PrivilegeDBNode dbNode = (PrivilegeDBNode) root.getChild(dbName);
             if(dbNode.containsNode(tableName)){

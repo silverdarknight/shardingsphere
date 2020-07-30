@@ -19,6 +19,9 @@ package org.apache.shardingsphere.proxy.backend.privilege.tree;
 
 import org.junit.Test;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -38,6 +41,7 @@ public class TreeTest {
         assertThat(treeNode.checkPath("db","table_false"), is(true));
         treeNode.root.setStar();
         assertThat(treeNode.checkPath("db_false","test_false"), is(true));
+        treeNode = new PrivilegeTree();
     }
 
     @Test
@@ -55,5 +59,67 @@ public class TreeTest {
         assertThat(treeNode.checkPath("db_false","table_false","col_false"), is(false));
         treeNode.root.setStar();
         assertThat(treeNode.checkPath("db_false","test_false","col_false"), is(true));
+        treeNode = new PrivilegeTree();
+    }
+
+    @Test
+    public void grantTableTest(){
+        treeNode.grantPath("db","table");
+        assertThat(treeNode.checkPath("db","table"),is(true));
+        assertThat(treeNode.checkPath("db","table_false"),is(false));
+        treeNode.grantPath("db","*");
+        assertThat(treeNode.checkPath("db","table_false"),is(true));
+        treeNode.grantPath("*","*");
+        assertThat(treeNode.checkPath("db_false","table_false"),is(true));
+        treeNode = new PrivilegeTree();
+    }
+
+    @Test
+    public void grantColTest(){
+        treeNode.grantPath("db","table","col");
+        assertThat(treeNode.checkPath("db","table","col"),is(true));
+        assertThat(treeNode.checkPath("db","table","col_f"),is(false));
+        treeNode.grantPath("db","table","*");
+        assertThat(treeNode.checkPath("db","table","col_f"),is(true));
+        assertThat(treeNode.checkPath("db","table_f","col_f"),is(false));
+        treeNode.grantPath("db","*","*");
+        assertThat(treeNode.checkPath("db","table_f","col_f"),is(true));
+        assertThat(treeNode.checkPath("db_f","table_f","col_f"),is(false));
+        treeNode.grantPath("*","*","*");
+        assertThat(treeNode.checkPath("db_f","table_f","col_f"),is(true));
+        treeNode = new PrivilegeTree();
+        List<String> cols = new LinkedList<>(); cols.add("col1"); cols.add("col2");
+        treeNode.grantPath("db","table",cols);
+        assertThat(treeNode.checkPath("db","table","col1"),is(true));
+        assertThat(treeNode.checkPath("db","table","col2"),is(true));
+        assertThat(treeNode.checkPath("db","table","col3"),is(false));
+        treeNode = new PrivilegeTree();
+    }
+
+    @Test
+    public void revokeTableTest(){
+        treeNode.grantPath("db","table");
+        treeNode.revokePath("db","table");
+        assertThat(treeNode.checkPath("db","table"),is(false));
+        assertThat(treeNode.root.offspring.size(),is(0));
+        treeNode.grantPath("db","table");
+        treeNode.grantPath("db","*");
+        treeNode.revokePath("db","*");
+        assertThat(treeNode.checkPath("db","table_f"),is(false));
+        assertThat(treeNode.root.offspring.size(),is(1));
+        assertThat(treeNode.root.containsStar,is(false));
+        treeNode.grantPath("*","*");
+        treeNode.revokePath("*","*");
+        assertThat(treeNode.root.offspring.size(),is(1));
+    }
+
+    @Test
+    public void revokeColTest(){
+        treeNode.grantPath("db","table","col");
+        treeNode.revokePath("db","table","col");
+        assertThat(treeNode.root.offspring.size(),is(0));
+        treeNode.grantPath("db","table","col");
+        treeNode.revokePath("db","table","*");
+        assertThat(treeNode.root.offspring.size(),is(0));
     }
 }
