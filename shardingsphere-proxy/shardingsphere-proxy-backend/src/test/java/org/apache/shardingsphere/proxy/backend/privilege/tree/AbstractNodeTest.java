@@ -18,10 +18,13 @@
 package org.apache.shardingsphere.proxy.backend.privilege.tree;
 
 import org.junit.Test;
+
+import java.io.Serializable;
+
 import static org.junit.Assert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 
-public class AbstractNodeTest {
+public class AbstractNodeTest implements Serializable {
     private PrivilegeTableNode abstractNode = new PrivilegeTableNode("testTable");
 
     @Test

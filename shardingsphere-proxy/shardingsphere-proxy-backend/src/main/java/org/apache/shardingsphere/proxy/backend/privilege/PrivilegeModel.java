@@ -5,6 +5,7 @@ import lombok.Setter;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
 import org.apache.shardingsphere.proxy.backend.privilege.common.PrivilegeActionType;
 import org.apache.shardingsphere.proxy.backend.privilege.impl.RolePrivilege;
+import org.apache.shardingsphere.proxy.backend.privilege.tree.PrivilegeTree;
 import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegeConfiguration;
 import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegePath;
 
@@ -22,7 +23,7 @@ public abstract class PrivilegeModel implements Serializable {
 
     public final static int INITIAL_PRIVILEGE_LENGTH = 8;
 
-    protected Map<PrivilegeActionType, PrivilegePathTree> privilegePaths = new HashMap<>(PrivilegeActionType.values().length);
+    protected Map<PrivilegeActionType, PrivilegeTree> privilegePaths = new HashMap<>(PrivilegeActionType.values().length);
 
     public PrivilegeModel(){
         EnumSet<PrivilegeActionType> actionTypes = EnumSet.allOf(PrivilegeActionType.class);
@@ -30,7 +31,7 @@ public abstract class PrivilegeModel implements Serializable {
         while (iterator.hasNext()){
             PrivilegeActionType curActionType = iterator.next();
             if(curActionType != PrivilegeActionType.UNKNOWN_TYPE)
-                getPrivilegePaths().put(curActionType, new PrivilegePathTree());
+                getPrivilegePaths().put(curActionType, new PrivilegeTree());
         }
     }
 
@@ -86,7 +87,7 @@ public abstract class PrivilegeModel implements Serializable {
         }
     }
 
-    protected PrivilegePathTree chosePrivilegeType(String privilegeType){
+    protected PrivilegeTree chosePrivilegeType(String privilegeType){
         PrivilegeActionType actionType = PrivilegeActionType.checkActionType(privilegeType);
         if(actionType == PrivilegeActionType.UNKNOWN_TYPE)
             throw new ShardingSphereException("Can not match privilege type");
@@ -94,12 +95,12 @@ public abstract class PrivilegeModel implements Serializable {
     }
 
     protected void grant(String privilegeType, String dbName, String tableName, List<String> cols){
-        PrivilegePathTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
+        PrivilegeTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
         targetPrivilegeTree.grantPath(dbName, tableName, cols);
     }
 
     protected void grant(String privilegeType, String dbName, String tableName){
-        PrivilegePathTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
+        PrivilegeTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
         targetPrivilegeTree.grantPath(dbName, tableName);
     }
 
@@ -126,12 +127,12 @@ public abstract class PrivilegeModel implements Serializable {
     }
 
     protected void revoke(String privilegeType, String dbName, String tableName, List<String> cols){
-        PrivilegePathTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
+        PrivilegeTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
         targetPrivilegeTree.revokePath(dbName, tableName,cols);
     }
 
     protected void revoke(String privilegeType, String dbName, String tableName){
-        PrivilegePathTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
+        PrivilegeTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
         targetPrivilegeTree.revokePath(dbName, tableName);
     }
 
@@ -158,12 +159,12 @@ public abstract class PrivilegeModel implements Serializable {
     }
 
     public boolean checkPrivilege(String privilegeType, String dbName, String tableName, String column){
-        PrivilegePathTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
+        PrivilegeTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
         return targetPrivilegeTree.checkPath(dbName, tableName, column);
     }
 
     public boolean checkPrivilege(String privilegeType, String dbName, String tableName){
-        PrivilegePathTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
+        PrivilegeTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
         return targetPrivilegeTree.checkPath(dbName, tableName);
     }
 

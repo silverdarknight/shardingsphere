@@ -20,6 +20,7 @@ package org.apache.shardingsphere.proxy.backend.privilege;
 import org.apache.shardingsphere.proxy.backend.privilege.impl.RolePrivilege;
 import org.apache.shardingsphere.proxy.backend.privilege.impl.UserInformation;
 import org.apache.shardingsphere.proxy.backend.privilege.impl.UserPrivilege;
+import org.apache.shardingsphere.proxy.backend.privilege.tree.PrivilegeTree;
 import org.junit.Test;
 
 import java.util.LinkedList;
@@ -121,52 +122,5 @@ public class UserPrivilegeTest {
         cols = new LinkedList<>(); cols.add("col3");
         userPrivilege1.revoke("select","testDB", "testTable",cols);
         assertThat(userPrivilege1.checkPrivilege("select","testDB.testTable.col3"),is(false));
-    }
-
-    @Test
-    public void userPrivilegeEquals(){
-        UserPrivilege userPrivilegeStdNoRole,userPrivilegeNoRole1,userPrivilegeNoRole2
-                ,userPrivilegeStdRole,userPrivilegeRole1,userPrivilegeRole2;
-        PrivilegePathTreeNode tree1 = new PrivilegePathTreeNode()
-                , child1_1 = new PrivilegePathTreeNode("1",tree1)
-                , child1_1_1 = new PrivilegePathTreeNode("1",child1_1)
-                , tree2 = new PrivilegePathTreeNode()
-                , child2_1 = new PrivilegePathTreeNode("1",tree2)
-                , child2_1_1 = new PrivilegePathTreeNode("1",child2_1);
-        assertThat(child1_1.equals(child2_1),is(true));
-        tree1.getOffspring().add(child1_1);tree2.getOffspring().add(child2_1);
-        assertThat(tree1.equals(tree2),is(true));assertThat(tree1.hashCode()==tree2.hashCode(),is(true));
-        child1_1.getOffspring().add(child1_1_1);child2_1.getOffspring().add(child2_1_1);
-        assertThat(child1_1.equals(child2_1),is(true));
-        assertThat(child1_1.getOffspring().contains(child2_1_1),is(true));
-        assertThat(tree1.equals(tree2),is(true));
-        userPrivilegeStdNoRole = new UserPrivilege();
-        userPrivilegeNoRole1 = new UserPrivilege();
-        userPrivilegeNoRole2 = new UserPrivilege();
-        userPrivilegeStdRole = new UserPrivilege();
-        userPrivilegeRole1 = new UserPrivilege();
-        userPrivilegeRole2 = new UserPrivilege();
-        userPrivilegeStdNoRole.grant("select", "testDB2.*");
-        userPrivilegeNoRole1.grant("select", "testDB2 .*");
-        userPrivilegeNoRole2.grant("select", "testDB3.*");
-        // without role
-        assertThat(userPrivilegeStdNoRole.equals(userPrivilegeNoRole1),is(true));
-        assertThat(userPrivilegeStdNoRole.equals(userPrivilegeNoRole2),is(false));
-        assertThat(userPrivilegeStdNoRole.hashCode()==userPrivilegeNoRole1.hashCode(),is(true));
-        assertThat(userPrivilegeStdNoRole.hashCode()==userPrivilegeNoRole2.hashCode(),is(false));
-        // role
-        RolePrivilege rolePrivilege = new RolePrivilege("testRole")
-                , rolePrivilege1 = new RolePrivilege("testRole")
-                , rolePrivilege2 = new RolePrivilege("testRole");
-        List<String> testCols = new LinkedList<>(); testCols.add("col1");testCols.add("col2");
-        rolePrivilege.grant("select", "testDB_role.testTable_role",testCols);
-        testCols = new LinkedList<>(); testCols.add("col1 ");testCols.add("col2");
-        rolePrivilege1.grant("select", "testDB_role.testTable_role",testCols);
-        testCols = new LinkedList<>(); testCols.add("col1");testCols.add("col3");
-        rolePrivilege2.grant("select", "testDB_role.testTable_role",testCols);
-        assertThat(rolePrivilege.equals(rolePrivilege1),is(true));
-        assertThat(rolePrivilege.equals(rolePrivilege2),is(false));
-        assertThat(rolePrivilege.hashCode()==rolePrivilege1.hashCode(),is(true));
-        assertThat(rolePrivilege.hashCode()==rolePrivilege2.hashCode(),is(false));
     }
 }

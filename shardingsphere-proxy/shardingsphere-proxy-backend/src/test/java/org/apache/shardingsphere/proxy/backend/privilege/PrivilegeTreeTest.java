@@ -17,6 +17,7 @@
 
 package org.apache.shardingsphere.proxy.backend.privilege;
 
+import org.apache.shardingsphere.proxy.backend.privilege.tree.PrivilegeTree;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -31,14 +32,13 @@ public class PrivilegeTreeTest {
 
     @Test
     public void constructTest(){
-        PrivilegePathTree tree = new PrivilegePathTree();
-        assertThat(tree,instanceOf(PrivilegePathTree.class));
-        assertThat(tree.getRoot().getOffspring().size(),is(0));
+        PrivilegeTree tree = new PrivilegeTree();
+        assertThat(tree,instanceOf(PrivilegeTree.class));
     }
 
     @Test
     public void grantTableTest(){
-        PrivilegePathTree tree = new PrivilegePathTree();
+        PrivilegeTree tree = new PrivilegeTree();
         tree.grantPath("db1","table1");
         tree.grantPath("db1","table2");
         assertThat(tree.checkPath("db1","table1"), is(true));
@@ -54,7 +54,7 @@ public class PrivilegeTreeTest {
 
     @Test
     public void grantColumnTest(){
-        PrivilegePathTree tree = new PrivilegePathTree();
+        PrivilegeTree tree = new PrivilegeTree();
         tree.grantPath("db1","table1");
         assertThat(tree.checkPath("db1","table1","any"), is(true));
         assertThat(tree.checkPath("db1","table2","any"), is(false));
@@ -73,7 +73,7 @@ public class PrivilegeTreeTest {
 
     @Test
     public void revokeTableTest(){
-        PrivilegePathTree tree = new PrivilegePathTree();
+        PrivilegeTree tree = new PrivilegeTree();
         tree.grantPath("db1","table1");
         // no such grant error
         // tree.revokePath("db1","*");
@@ -82,7 +82,6 @@ public class PrivilegeTreeTest {
         // no such grant error
         //tree.revokePath("db1","table1");
         tree.revokePath("db1","*");
-        assertThat(tree.getRoot().getOffspring().size(),is(0));
         tree.grantPath("db1","table1");
         tree.grantPath("db1","table2");
         tree.revokePath("db1","table2");
@@ -98,7 +97,7 @@ public class PrivilegeTreeTest {
 
     @Test
     public void revokeColumnTest(){
-        PrivilegePathTree tree = new PrivilegePathTree();
+        PrivilegeTree tree = new PrivilegeTree();
         List<String> cols1 = new LinkedList<>(); cols1.add("*");
         tree.grantPath("db1","table1", cols1);
         List<String> testCols = new LinkedList<>();
@@ -107,7 +106,6 @@ public class PrivilegeTreeTest {
         // tree.revokePath("db1", "table1", testCols);
         testCols = new LinkedList<>(); testCols.add("*");
         tree.revokePath("db1", "table1", testCols);
-        assertThat(tree.getRoot().getOffspring().size(),is(0));
         testCols = new LinkedList<>(); testCols.add("col1"); testCols.add("col2");
         tree.grantPath("db1", "table1", testCols);
         testCols = new LinkedList<>(); testCols.add("col2");
@@ -117,6 +115,5 @@ public class PrivilegeTreeTest {
         testCols = new LinkedList<>(); testCols.add("*");
         tree.revokePath("db1", "table1", testCols);
         assertThat(tree.checkPath("db1","table1","col1"),is(false));
-        assertThat(tree.getRoot().getOffspring().size(),is(0));
     }
 }

@@ -34,24 +34,6 @@ public class RolePrivilegeTest {
     }
 
     @Test
-    public void assertRolePrivilegeEquals(){
-        RolePrivilege rolePrivilege = new RolePrivilege("testRole");
-        rolePrivilege.grant("select","testDB1.*");
-        rolePrivilege.grant("select","testDB2 .*");
-        rolePrivilege.grant("select"," testDB3.*");
-        rolePrivilege.grant("select"," testDB4 .*");
-        RolePrivilege rolePrivilege2 = new RolePrivilege("testRole");
-        rolePrivilege2.grant("select","testDB4.*");
-        rolePrivilege2.grant("select","testDB3.*");
-        rolePrivilege2.grant("select","testDB2.*");
-        assertThat(rolePrivilege.equals(rolePrivilege2),is(false));
-        assertThat(rolePrivilege.hashCode()==rolePrivilege2.hashCode(),is(false));
-        rolePrivilege2.grant("select","testDB1.*");
-        assertThat(rolePrivilege.equals(rolePrivilege2),is(true));
-        assertThat(rolePrivilege.hashCode()==rolePrivilege2.hashCode(),is(true));
-    }
-
-    @Test
     public void assertRolePrivilegeCheckExecutor(){
         RolePrivilege rolePrivilege = new RolePrivilege("testRole.*");
         rolePrivilege.grant("select","testDB1.*");
