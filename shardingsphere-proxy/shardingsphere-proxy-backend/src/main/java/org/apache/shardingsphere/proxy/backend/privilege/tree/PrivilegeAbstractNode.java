@@ -17,14 +17,13 @@
 
 package org.apache.shardingsphere.proxy.backend.privilege.tree;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
-
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
 
-public abstract class PrivilegeAbstractNode{
+public abstract class PrivilegeAbstractNode implements Serializable {
 
     public PrivilegeAbstractNode(String content){
         isRegNode = contentIsReg(content);
@@ -95,7 +94,7 @@ public abstract class PrivilegeAbstractNode{
             while (iterator.hasNext()){
                 PrivilegeAbstractNode nextGenNode = iterator.next();
                 Boolean clearMySelf = nextGenNode.clearEmptyPaths();
-                if(clearMySelf) offspring.remove(nextGenNode);
+                if(clearMySelf) iterator.remove();
             }
             return !containsOffspring();
         }

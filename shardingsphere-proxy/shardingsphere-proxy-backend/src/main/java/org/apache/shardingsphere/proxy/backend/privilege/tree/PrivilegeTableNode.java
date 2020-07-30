@@ -77,4 +77,9 @@ public class PrivilegeTableNode extends PrivilegeAbstractNode implements Seriali
         }
         return false;
     }
+
+    @Override
+    protected Boolean clearEmptyPaths(){
+        return !containsOffspring();
+    }
 }
