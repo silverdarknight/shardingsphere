@@ -52,7 +52,7 @@ public class AbstractNodeTest {
     public void clearEmptyPathsTest(){
         assertThat(abstractNode.clearEmptyPaths(),is(true));
         abstractNode.addChild("col");
-        assertThat(abstractNode.clearEmptyPaths(),is(true));
+        assertThat(abstractNode.clearEmptyPaths(),is(false));
     }
 
     @Test
