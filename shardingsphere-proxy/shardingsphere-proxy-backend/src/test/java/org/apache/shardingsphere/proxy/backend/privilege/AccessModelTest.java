@@ -37,7 +37,7 @@ public class AccessModelTest {
     @Test
     public void constructTest() throws IOException,ClassNotFoundException {
         File privilegeFile = new File(
-                ShardingConfigurationLoader.class.getResource("/conf/" + "/" + "privilege.yaml")
+                ShardingConfigurationLoader.class.getResource("/conf" + "/" + "privilege.yaml")
                         .getFile());
         YamlAccessModel yamlAccessModel = YamlEngine.unmarshal(privilegeFile, YamlAccessModel.class);
         AccessModel accessModel = new AccessModel(yamlAccessModel);
