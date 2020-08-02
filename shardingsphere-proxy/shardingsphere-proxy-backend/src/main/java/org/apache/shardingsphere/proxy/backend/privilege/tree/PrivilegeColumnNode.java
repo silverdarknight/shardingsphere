@@ -17,7 +17,6 @@
 
 package org.apache.shardingsphere.proxy.backend.privilege.tree;
 
-import org.apache.shardingsphere.infra.exception.ShardingSphereException;
 import org.apache.shardingsphere.proxy.backend.privilege.common.PrivilegeExceptions;
 
 import java.io.Serializable;
@@ -26,22 +25,22 @@ public class PrivilegeColumnNode extends PrivilegeAbstractNode implements Serial
 
     private static final long serialVersionUID = 6547718177957008703L;
 
-    public PrivilegeColumnNode(String content) {
+    public PrivilegeColumnNode(final String content) {
         super(content);
     }
 
     @Override
-    protected Boolean addChild(String path) {
-        throw new ShardingSphereException(PrivilegeExceptions.cannotActNodeAfterColumn);
+    protected Boolean addChild(final String path) {
+        throw PrivilegeExceptions.cannotActNodeAfterColumn();
     }
 
     @Override
-    protected Boolean removeChild(String path) {
-        throw new ShardingSphereException(PrivilegeExceptions.cannotActNodeAfterColumn);
+    protected Boolean removeChild(final String path) {
+        throw PrivilegeExceptions.cannotActNodeAfterColumn();
     }
 
     @Override
-    protected Boolean containsChild(String path) {
+    protected Boolean containsChild(final String path) {
         return false;
     }
 }

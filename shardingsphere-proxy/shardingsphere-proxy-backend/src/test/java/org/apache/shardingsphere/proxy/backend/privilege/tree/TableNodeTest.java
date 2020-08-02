@@ -19,8 +19,6 @@ package org.apache.shardingsphere.proxy.backend.privilege.tree;
 
 import org.junit.Test;
 
-import java.util.Iterator;
-
 import static org.junit.Assert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 
@@ -29,30 +27,30 @@ public class TableNodeTest {
     private PrivilegeTableNode tableNode = new PrivilegeTableNode("table");
 
     @Test
-    public void addTest(){
-        assertThat(tableNode.addChild("*"),is(true));
-        assertThat(tableNode.addChild("*"),is(false));
-        assertThat(tableNode.addChild("col"),is(true));
-        assertThat(tableNode.addChild("col"),is(false));
+    public void addTest() {
+        assertThat(tableNode.addChild("*"), is(true));
+        assertThat(tableNode.addChild("*"), is(false));
+        assertThat(tableNode.addChild("col"), is(true));
+        assertThat(tableNode.addChild("col"), is(false));
     }
 
     @Test
-    public void removeTest(){
+    public void removeTest() {
         tableNode.addChild("*");
         tableNode.addChild("col");
-        assertThat(tableNode.removeChild("col"),is(true));
-        assertThat(tableNode.removeChild("col"),is(false));
-        assertThat(tableNode.removeChild("*"),is(true));
-        assertThat(tableNode.removeChild("*"),is(false));
+        assertThat(tableNode.removeChild("col"), is(true));
+        assertThat(tableNode.removeChild("col"), is(false));
+        assertThat(tableNode.removeChild("*"), is(true));
+        assertThat(tableNode.removeChild("*"), is(false));
     }
 
     @Test
-    public void containsTest(){
+    public void containsTest() {
         tableNode.addChild("col");
-        assertThat(tableNode.containsChild("col"),is(true));
-        assertThat(tableNode.containsChild("col_false"),is(false));
+        assertThat(tableNode.containsChild("col"), is(true));
+        assertThat(tableNode.containsChild("col_false"), is(false));
         tableNode.addChild("*");
-        assertThat(tableNode.containsChild("col_false"),is(true));
+        assertThat(tableNode.containsChild("col_false"), is(true));
     }
 
 }

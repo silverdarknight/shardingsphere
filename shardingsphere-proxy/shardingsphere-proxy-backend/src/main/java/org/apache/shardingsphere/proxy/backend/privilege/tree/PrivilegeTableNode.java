@@ -17,8 +17,6 @@
 
 package org.apache.shardingsphere.proxy.backend.privilege.tree;
 
-import org.apache.shardingsphere.infra.exception.ShardingSphereException;
-
 import java.io.Serializable;
 import java.util.Iterator;
 
@@ -26,40 +24,45 @@ public class PrivilegeTableNode extends PrivilegeAbstractNode implements Seriali
 
     private static final long serialVersionUID = -2332527780449248548L;
 
-    public PrivilegeTableNode(String content) {
+    public PrivilegeTableNode(final String content) {
         super(content);
     }
 
     @Override
-    protected Boolean addChild(String path) {
-        if(path.equals("*")) {
-            if(containsStar) return false;
-            containsStar = true;
+    protected Boolean addChild(final String path) {
+        if ("*".equals(path)) {
+            if (getContainsStar()) {
+                return false;
+            }
+            setContainsStar(true);
             return true;
         }
         PrivilegeColumnNode colNode = new PrivilegeColumnNode(path);
-        Iterator<PrivilegeAbstractNode> iterator = offspring.iterator();
-        while (iterator.hasNext()){
-            if(iterator.next().getContent().equals(path)) return false;
+        Iterator<PrivilegeAbstractNode> iterator = getOffspring().iterator();
+        while (iterator.hasNext()) {
+            if (iterator.next().getContent().equals(path)) {
+                return false;
+            }
         }
-        offspring.add(colNode);
+        getOffspring().add(colNode);
         return true;
     }
 
     @Override
-    protected Boolean removeChild(String path) {
-        if(path.trim().equals("*")) {
-            if(!containsOffspring()) return false;
-            containsStar = false;
-            offspring.clear();
+    protected Boolean removeChild(final String path) {
+        if ("*".equals(path.trim())) {
+            if (!containsOffspring()) {
+                return false;
+            }
+            setContainsStar(false);
+            getOffspring().clear();
             return true;
-        }
-        else{
-            Iterator<PrivilegeAbstractNode> iterator = offspring.iterator();
-            while (iterator.hasNext()){
+        } else {
+            Iterator<PrivilegeAbstractNode> iterator = getOffspring().iterator();
+            while (iterator.hasNext()) {
                 PrivilegeAbstractNode curColNode = iterator.next();
-                if(curColNode.getContent().equals(path)) {
-                    offspring.remove(curColNode);
+                if (curColNode.getContent().equals(path)) {
+                    getOffspring().remove(curColNode);
                     return true;
                 }
             }
@@ -68,18 +71,22 @@ public class PrivilegeTableNode extends PrivilegeAbstractNode implements Seriali
     }
 
     @Override
-    protected Boolean containsChild(String path) {
-        if(containsStar) return true;
-        Iterator<PrivilegeAbstractNode> iterator = offspring.iterator();
-        while (iterator.hasNext()){
+    protected Boolean containsChild(final String path) {
+        if (getContainsStar()) {
+            return true;
+        }
+        Iterator<PrivilegeAbstractNode> iterator = getOffspring().iterator();
+        while (iterator.hasNext()) {
             PrivilegeAbstractNode curColNode = iterator.next();
-            if(curColNode.isPath(path)) return true;
+            if (curColNode.isPath(path)) {
+                return true;
+            }
         }
         return false;
     }
 
     @Override
-    protected Boolean clearEmptyPaths(){
+    protected Boolean clearEmptyPaths() {
         return !containsOffspring();
     }
 }

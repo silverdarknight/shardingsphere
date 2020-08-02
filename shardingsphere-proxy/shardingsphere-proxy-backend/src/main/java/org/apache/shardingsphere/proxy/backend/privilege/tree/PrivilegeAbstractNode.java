@@ -17,7 +17,9 @@
 
 package org.apache.shardingsphere.proxy.backend.privilege.tree;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -25,63 +27,72 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
 
+@Getter(AccessLevel.PROTECTED)
+@Setter(AccessLevel.PROTECTED)
 public abstract class PrivilegeAbstractNode implements Serializable {
 
-    public PrivilegeAbstractNode(String content){
+    private String content;
+
+    private Collection<PrivilegeAbstractNode> offspring = new HashSet<>();
+
+    private Boolean containsStar = false;
+
+    private Boolean isRegNode;
+
+    public PrivilegeAbstractNode(final String content) {
         isRegNode = contentIsReg(content);
         this.content = content.trim();
     }
 
-    protected String content;
-
-    protected Collection<PrivilegeAbstractNode> offspring = new HashSet<>();
-
-    protected Boolean containsStar = false;
-
-    protected Boolean isRegNode;
-
-    protected Boolean hasStar(){
+    protected Boolean hasStar() {
         return containsStar;
     }
 
-    protected void setStar(){ containsStar = true; }
+    protected void setStar() {
+        containsStar = true;
+    }
 
-    protected String getContent(){return content;}
-
-    /**
-     * if node uses reg, check equals, or use likePath to check
-     *
-     * @param path input node path
-     */
-    protected Boolean isPath(String path){
-        if(!isRegNode) {
-            return equalsContent(path);
-        }
-        else return likePath(path);
+    protected String getContent() {
+        return content;
     }
 
     /**
-     * check whether path.matches(reg)
+     * if node uses reg, check equals, or use likePath to check.
      *
      * @param path input node path
      */
-    protected Boolean likePath(String path){ return true; }
+    protected Boolean isPath(final String path) {
+        if (!isRegNode) {
+            return equalsContent(path);
+        } else {
+            return likePath(path);
+        }
+    }
 
     /**
-     * input content, check whether type of content is reg
+     * check whether path.matches(reg).
+     *
+     * @param path input node path
+     */
+    protected Boolean likePath(final String path) {
+        return true; }
+
+    /**
+     * input content, check whether type of content is reg.
      *
      * @param content input node path
+     * @return is reg
      */
-    protected Boolean contentIsReg(String content){
+    protected Boolean contentIsReg(final String content) {
         return false;
     }
 
     /**
-     * check empty node
+     * check empty node.
      *
      * @return offspring is empty and do not have *
      */
-    protected Boolean containsOffspring(){
+    protected Boolean containsOffspring() {
         return !offspring.isEmpty() || containsStar;
     }
 
@@ -90,77 +101,77 @@ public abstract class PrivilegeAbstractNode implements Serializable {
      *
      * @return whether this node need to be removed.
      */
-    protected Boolean clearEmptyPaths(){
-        if (containsOffspring()){
+    protected Boolean clearEmptyPaths() {
+        if (containsOffspring()) {
             Iterator<PrivilegeAbstractNode> iterator = offspring.iterator();
-            while (iterator.hasNext()){
+            while (iterator.hasNext()) {
                 PrivilegeAbstractNode nextGenNode = iterator.next();
                 Boolean clearMySelf = nextGenNode.clearEmptyPaths();
-                if(clearMySelf) iterator.remove();
+                if (clearMySelf) {
+                    iterator.remove();
+                }
             }
             return !containsOffspring();
+        } else {
+            return true;
         }
-        else return true;
     }
 
     /**
-     * get specific node, return null if not exist
+     * get specific node, return null if not exist.
      *
+     * @param path child content
      * @return target node
      */
-    protected PrivilegeAbstractNode getChild(String path){
+    protected PrivilegeAbstractNode getChild(final String path) {
         Iterator<PrivilegeAbstractNode> iterator = offspring.iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             PrivilegeAbstractNode curNode = iterator.next();
-            if(curNode.content.equals(path.trim())) return curNode;
+            if (curNode.content.equals(path.trim())) {
+                return curNode;
+            }
         }
         return null;
     }
 
     /**
-     * contains node whose content.equals path
+     * contains node whose content.equals path.
      *
+     * @param path input path
      * @return contains path
      */
-    protected Boolean containsNode(String path){
-        if(path.trim().equals("*") && containsStar) return true;
+    protected Boolean containsNode(final String path) {
+        if (path.trim().equals("*") && containsStar) {
+            return true;
+        }
         Iterator<PrivilegeAbstractNode> iterator = offspring.iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             PrivilegeAbstractNode curTableNode = iterator.next();
-            if(curTableNode.equalsContent(path)) return true;
+            if (curTableNode.equalsContent(path)) {
+                return true;
+            }
         }
         return false;
     }
 
-    private Boolean equalsContent(String content){
+    private Boolean equalsContent(final String content) {
         return content.trim().equals(this.content);
     }
 
-    /**
-     * add child to offspring
-     *
-     * @return add successfully
-     */
     protected abstract Boolean addChild(String path);
 
-    /**
-     * remove child from offspring
-     *
-     * @return remove successfully
-     */
     protected abstract Boolean removeChild(String path);
 
-    /**
-     * contains child to offspring
-     *
-     * @return contains specific child
-     */
     protected abstract Boolean containsChild(String path);
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         PrivilegeAbstractNode that = (PrivilegeAbstractNode) o;
         return Objects.equals(content, that.content);
     }

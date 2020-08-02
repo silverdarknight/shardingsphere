@@ -24,39 +24,44 @@ public class PrivilegeRootNode extends PrivilegeAbstractNode implements Serializ
 
     private static final long serialVersionUID = 7141817834982157484L;
 
-    public PrivilegeRootNode(String content) {
+    public PrivilegeRootNode(final String content) {
         super(content);
     }
 
     @Override
-    protected Boolean addChild(String path) {
-        if(path.equals("*")) {
-            if(containsStar) return false;
-            containsStar = true;
+    protected Boolean addChild(final String path) {
+        if ("*".equals(path)) {
+            if (getContainsStar()) {
+                return false;
+            }
+            setContainsStar(true);
             return true;
         }
         PrivilegeDBNode dbNode = new PrivilegeDBNode(path);
-        Iterator<PrivilegeAbstractNode> iterator = offspring.iterator();
-        while (iterator.hasNext()){
-            if(iterator.next().getContent().equals(path)) return false;
+        Iterator<PrivilegeAbstractNode> iterator = getOffspring().iterator();
+        while (iterator.hasNext()) {
+            if (iterator.next().getContent().equals(path)) {
+                return false;
+            }
         }
-        offspring.add(dbNode);
+        getOffspring().add(dbNode);
         return true;
     }
 
     @Override
-    protected Boolean removeChild(String path) {
-        if(path.trim().equals("*")) {
-            if(!containsStar) return false;
-            containsStar = false;
+    protected Boolean removeChild(final String path) {
+        if ("*".equals(path.trim())) {
+            if (!getContainsStar()) {
+                return false;
+            }
+            setContainsStar(false);
             return true;
-        }
-        else{
-            Iterator<PrivilegeAbstractNode> iterator = offspring.iterator();
-            while (iterator.hasNext()){
+        } else {
+            Iterator<PrivilegeAbstractNode> iterator = getOffspring().iterator();
+            while (iterator.hasNext()) {
                 PrivilegeAbstractNode curDBNode = iterator.next();
-                if(curDBNode.getContent().equals(path)) {
-                    offspring.remove(curDBNode);
+                if (curDBNode.getContent().equals(path)) {
+                    getOffspring().remove(curDBNode);
                     return true;
                 }
             }
@@ -65,12 +70,16 @@ public class PrivilegeRootNode extends PrivilegeAbstractNode implements Serializ
     }
 
     @Override
-    protected Boolean containsChild(String path) {
-        if(containsStar) return true;
-        Iterator<PrivilegeAbstractNode> iterator = offspring.iterator();
-        while (iterator.hasNext()){
+    protected Boolean containsChild(final String path) {
+        if (getContainsStar()) {
+            return true;
+        }
+        Iterator<PrivilegeAbstractNode> iterator = getOffspring().iterator();
+        while (iterator.hasNext()) {
             PrivilegeAbstractNode curDBNode = iterator.next();
-            if(curDBNode.isPath(path)) return true;
+            if (curDBNode.isPath(path)) {
+                return true;
+            }
         }
         return false;
     }

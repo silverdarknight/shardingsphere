@@ -27,29 +27,29 @@ public class DBNodeTest {
     private PrivilegeDBNode dbNode = new PrivilegeDBNode("table");
 
     @Test
-    public void addTest(){
-        assertThat(dbNode.addChild("*"),is(true));
-        assertThat(dbNode.addChild("*"),is(false));
-        assertThat(dbNode.addChild("col"),is(true));
-        assertThat(dbNode.addChild("col"),is(false));
+    public void addTest() {
+        assertThat(dbNode.addChild("*"), is(true));
+        assertThat(dbNode.addChild("*"), is(false));
+        assertThat(dbNode.addChild("col"), is(true));
+        assertThat(dbNode.addChild("col"), is(false));
     }
 
     @Test
-    public void removeTest(){
+    public void removeTest() {
         dbNode.addChild("*");
         dbNode.addChild("col");
-        assertThat(dbNode.removeChild("col"),is(true));
-        assertThat(dbNode.removeChild("col"),is(false));
-        assertThat(dbNode.removeChild("*"),is(true));
-        assertThat(dbNode.removeChild("*"),is(false));
+        assertThat(dbNode.removeChild("col"), is(true));
+        assertThat(dbNode.removeChild("col"), is(false));
+        assertThat(dbNode.removeChild("*"), is(true));
+        assertThat(dbNode.removeChild("*"), is(false));
     }
 
     @Test
-    public void containsTest(){
+    public void containsTest() {
         dbNode.addChild("col");
-        assertThat(dbNode.containsChild("col"),is(true));
-        assertThat(dbNode.containsChild("col_false"),is(false));
+        assertThat(dbNode.containsChild("col"), is(true));
+        assertThat(dbNode.containsChild("col_false"), is(false));
         dbNode.addChild("*");
-        assertThat(dbNode.containsChild("col_false"),is(true));
+        assertThat(dbNode.containsChild("col_false"), is(true));
     }
 }

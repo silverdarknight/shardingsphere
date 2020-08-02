@@ -25,49 +25,49 @@ public class AbstractNodeTest {
     private PrivilegeTableNode abstractNode = new PrivilegeTableNode("testTable");
 
     @Test
-    public void isPathTest(){
-        abstractNode.isRegNode = true;
+    public void isPathTest() {
+        abstractNode.setIsRegNode(true);
         // assertThat(abstractNode.isPath("test"),is(true));
-        abstractNode.isRegNode = false;
-        assertThat(abstractNode.isPath("testTable"),is(true));
-        assertThat(abstractNode.isPath("testTable_false"),is(false));
+        abstractNode.setIsRegNode(false);
+        assertThat(abstractNode.isPath("testTable"), is(true));
+        assertThat(abstractNode.isPath("testTable_false"), is(false));
     }
 
     @Test
-    public void likePathTest(){
+    public void likePathTest() {
     }
 
     @Test
-    public void contentIsRegTest(){
+    public void contentIsRegTest() {
     }
 
     @Test
-    public void containsOffspringTest(){
+    public void containsOffspringTest() {
         abstractNode.setStar();
-        assertThat(abstractNode.containsOffspring(),is(true));
+        assertThat(abstractNode.containsOffspring(), is(true));
         abstractNode = new PrivilegeTableNode("testTable");
     }
 
     @Test
-    public void clearEmptyPathsTest(){
-        assertThat(abstractNode.clearEmptyPaths(),is(true));
+    public void clearEmptyPathsTest() {
+        assertThat(abstractNode.clearEmptyPaths(), is(true));
         abstractNode.addChild("col");
-        assertThat(abstractNode.clearEmptyPaths(),is(false));
+        assertThat(abstractNode.clearEmptyPaths(), is(false));
     }
 
     @Test
-    public void getChildTest(){
-        assertThat(abstractNode.getChild("test")==null,is(true));
+    public void getChildTest() {
+        assertThat(abstractNode.getChild("test") == null, is(true));
         abstractNode.addChild("col");
-        assertThat(abstractNode.getChild("col").content,is("col"));
+        assertThat(abstractNode.getChild("col").getContent(), is("col"));
         abstractNode = new PrivilegeTableNode("testTable");
     }
 
     @Test
-    public void containsNodeTest(){
+    public void containsNodeTest() {
         abstractNode.setStar();
-        assertThat(abstractNode.containsNode("*"),is(true));
+        assertThat(abstractNode.containsNode("*"), is(true));
         abstractNode.addChild("col");
-        assertThat(abstractNode.containsNode("col"),is(true));
+        assertThat(abstractNode.containsNode("col"), is(true));
     }
 }

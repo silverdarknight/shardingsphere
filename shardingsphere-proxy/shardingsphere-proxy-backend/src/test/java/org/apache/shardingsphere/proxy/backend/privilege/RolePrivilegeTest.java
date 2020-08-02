@@ -24,85 +24,94 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.Assert.assertThat;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
 
 public class RolePrivilegeTest {
+
     @Test
-    public void assertRolePrivilegeGenerator(){
+    public void assertRolePrivilegeGenerator() {
         RolePrivilege rolePrivilege = new RolePrivilege("testRole");
         assertThat(rolePrivilege, instanceOf(RolePrivilege.class));
     }
+
     @Test
-    public void assertRolePrivilegeCheckExecutor(){
+    public void assertRolePrivilegeCheckExecutor() {
         RolePrivilege rolePrivilege = new RolePrivilege("testRole.*");
-        rolePrivilege.grant("select","testDB1.*");
+        rolePrivilege.grant("select", "testDB1.*");
         rolePrivilege.grant("select", "testDB2.testTable");
-        LinkedList<String> cols = new LinkedList<>(); cols.add("col1");
-        rolePrivilege.grant("select", "testDB3.testTable",cols);
+        LinkedList<String> cols = new LinkedList<>();
+        cols.add("col1");
+        rolePrivilege.grant("select", "testDB3.testTable", cols);
         // information (database / information)
-        assertThat(rolePrivilege.checkPrivilege("select","testDB_false.*"),is(false));
-        assertThat(rolePrivilege.checkPrivilege("select","testDB1.*"),is(true));
-        assertThat(rolePrivilege.checkPrivilege("select","testDB2.*"),is(false));
-        assertThat(rolePrivilege.checkPrivilege("select","testDB2.testTable"),is(true));
-        assertThat(rolePrivilege.checkPrivilege("select","testDB2. testTable"),is(true));
-        assertThat(rolePrivilege.checkPrivilege("select","testDB3.testTable"),is(false));
-        assertThat(rolePrivilege.checkPrivilege("select","testDB3.testTable.col1"),is(true));
+        assertThat(rolePrivilege.checkPrivilege("select", "testDB_false.*"), is(false));
+        assertThat(rolePrivilege.checkPrivilege("select", "testDB1.*"), is(true));
+        assertThat(rolePrivilege.checkPrivilege("select", "testDB2.*"), is(false));
+        assertThat(rolePrivilege.checkPrivilege("select", "testDB2.testTable"), is(true));
+        assertThat(rolePrivilege.checkPrivilege("select", "testDB2. testTable"), is(true));
+        assertThat(rolePrivilege.checkPrivilege("select", "testDB3.testTable"), is(false));
+        assertThat(rolePrivilege.checkPrivilege("select", "testDB3.testTable.col1"), is(true));
         // database table
-        assertThat(rolePrivilege.checkPrivilege("select","testDB1","testTable"),is(true));
-        assertThat(rolePrivilege.checkPrivilege("select","testDB2"," testTable"),is(true));
+        assertThat(rolePrivilege.checkPrivilege("select", "testDB1", "testTable"), is(true));
+        assertThat(rolePrivilege.checkPrivilege("select", "testDB2", " testTable"), is(true));
         // database table col
-        assertThat(rolePrivilege.checkPrivilege("select","testDB1", "testTable", "col1"),is(true));
-        assertThat(rolePrivilege.checkPrivilege("select","testDB1", "testTable", "col1 "),is(true));
-        assertThat(rolePrivilege.checkPrivilege("select","testDB_false", "testTable", "col1"),is(false));
-        assertThat(rolePrivilege.checkPrivilege("select","testDB", "testTable_false", "col1"),is(false));
-        assertThat(rolePrivilege.checkPrivilege("select","testDB", "testTable", "col1_false"),is(false));
+        assertThat(rolePrivilege.checkPrivilege("select", "testDB1", "testTable", "col1"), is(true));
+        assertThat(rolePrivilege.checkPrivilege("select", "testDB1", "testTable", "col1 "), is(true));
+        assertThat(rolePrivilege.checkPrivilege("select", "testDB_false", "testTable", "col1"), is(false));
+        assertThat(rolePrivilege.checkPrivilege("select", "testDB", "testTable_false", "col1"), is(false));
+        assertThat(rolePrivilege.checkPrivilege("select", "testDB", "testTable", "col1_false"), is(false));
     }
 
     @Test
-    public void assertRolePrivilegeGrantExecutor(){
+    public void assertRolePrivilegeGrantExecutor() {
         RolePrivilege rolePrivilege = new RolePrivilege("testRole");
         RolePrivilege rolePrivilege2 = new RolePrivilege("testRole2");
         // information (database / information)
         rolePrivilege.grant("select", "*.*");
-        assertThat(rolePrivilege.checkPrivilege("select","testDB.*"),is(true));
+        assertThat(rolePrivilege.checkPrivilege("select", "testDB.*"), is(true));
         rolePrivilege2.grant("select", "testDB.*");
-        assertThat(rolePrivilege2.checkPrivilege("select","testDB.*"),is(true));
-        assertThat(rolePrivilege2.checkPrivilege("select","testDB_false.*"),is(false));
+        assertThat(rolePrivilege2.checkPrivilege("select", "testDB.*"), is(true));
+        assertThat(rolePrivilege2.checkPrivilege("select", "testDB_false.*"), is(false));
         rolePrivilege2.grant("select", "testDB2.testTable");
-        assertThat(rolePrivilege2.checkPrivilege("select","testDB2.testTable"),is(true));
-        assertThat(rolePrivilege2.checkPrivilege("select","testDB2.testTable_false"),is(false));
+        assertThat(rolePrivilege2.checkPrivilege("select", "testDB2.testTable"), is(true));
+        assertThat(rolePrivilege2.checkPrivilege("select", "testDB2.testTable_false"), is(false));
         // database table
-        rolePrivilege.grant("delete","testDB","testTable");
-        assertThat(rolePrivilege.checkPrivilege("delete","testDB","testTable"),is(true));
-        assertThat(rolePrivilege.checkPrivilege("delete","testDB","testTable_false"),is(false));
+        rolePrivilege.grant("delete", "testDB", "testTable");
+        assertThat(rolePrivilege.checkPrivilege("delete", "testDB", "testTable"), is(true));
+        assertThat(rolePrivilege.checkPrivilege("delete", "testDB", "testTable_false"), is(false));
         // database table column
-        List<String> cols = new LinkedList<>(); cols.add("col1");
-        rolePrivilege.grant("update","testDB","testTable",cols);
-        assertThat(rolePrivilege.checkPrivilege("update","testDB","testTable","col1"),is(true));
-        assertThat(rolePrivilege.checkPrivilege("update","testDB","testTable","col_false"),is(false));
+        List<String> cols = new LinkedList<>();
+        cols.add("col1");
+        rolePrivilege.grant("update", "testDB", "testTable", cols);
+        assertThat(rolePrivilege.checkPrivilege("update", "testDB", "testTable", "col1"), is(true));
+        assertThat(rolePrivilege.checkPrivilege("update", "testDB", "testTable", "col_false"), is(false));
     }
 
     @Test
-    public void assertRolePrivilegeRevokeExecutor(){
+    public void assertRolePrivilegeRevokeExecutor() {
         RolePrivilege rolePrivilege = new RolePrivilege("testRole");
         rolePrivilege.grant("select", "testDB2.*");
-        List<String> cols = new LinkedList<>(); cols.add("col1");
-        rolePrivilege.grant("select", "testDB.testTable",cols);
+        List<String> cols = new LinkedList<>();
+        cols.add("col1");
+        rolePrivilege.grant("select", "testDB.testTable", cols);
         rolePrivilege.grant("select", "testDB.testTable2");
-        cols = new LinkedList<>(); cols.add("col3");
-        rolePrivilege.grant("select", "testDB.testTable",cols);
+        cols = new LinkedList<>();
+        cols.add("col3");
+        rolePrivilege.grant("select", "testDB.testTable", cols);
         // information (database / information)
-        cols = new LinkedList<>(); cols.add("col1");
-        rolePrivilege.revoke("select","testDB.testTable",cols);
-        rolePrivilege.revoke("select","testDB2.*");
-        assertThat(rolePrivilege.checkPrivilege("select","testDB2.*"),is(false));
-        assertThat(rolePrivilege.checkPrivilege("select","testDB.testTable.col1"),is(false));
+        cols = new LinkedList<>();
+        cols.add("col1");
+        rolePrivilege.revoke("select", "testDB.testTable", cols);
+        rolePrivilege.revoke("select", "testDB2.*");
+        assertThat(rolePrivilege.checkPrivilege("select", "testDB2.*"), is(false));
+        assertThat(rolePrivilege.checkPrivilege("select", "testDB.testTable.col1"), is(false));
         // database table
-        rolePrivilege.revoke("select","testDB", "testTable2");
-        assertThat(rolePrivilege.checkPrivilege("select","testDB.testTable2"),is(false));
+        rolePrivilege.revoke("select", "testDB", "testTable2");
+        assertThat(rolePrivilege.checkPrivilege("select", "testDB.testTable2"), is(false));
         // database table column
-        cols = new LinkedList<>(); cols.add("col3");
-        rolePrivilege.revoke("select","testDB", "testTable",cols);
-        assertThat(rolePrivilege.checkPrivilege("select","testDB.testTable.col3"),is(false));
+        cols = new LinkedList<>();
+        cols.add("col3");
+        rolePrivilege.revoke("select", "testDB", "testTable", cols);
+        assertThat(rolePrivilege.checkPrivilege("select", "testDB.testTable.col3"), is(false));
     }
 }

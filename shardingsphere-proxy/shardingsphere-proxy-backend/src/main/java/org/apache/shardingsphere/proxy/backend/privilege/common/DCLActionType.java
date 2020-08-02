@@ -17,9 +17,9 @@
 
 package org.apache.shardingsphere.proxy.backend.privilege.common;
 
-public enum PrivilegeActionType {
+public enum DCLActionType {
 
-    INSERT, DELETE, SELECT, UPDATE, UNKNOWN_TYPE;
+    CHECK, GRANT, REVOKE, DISABLE, CREATE, REMOVE, UNKNOWN_TYPE;
 
     /**
      * check which privilege action used.
@@ -27,39 +27,22 @@ public enum PrivilegeActionType {
      * @param inputActionType input string
      * @return PrivilegeActionType.type
      */
-    public static PrivilegeActionType checkActionType(final String inputActionType) {
+    public static DCLActionType checkActionType(final String inputActionType) {
         switch (inputActionType.trim().toLowerCase()) {
-            case "insert":
-                return INSERT;
-            case "delete":
-                return DELETE;
-            case "select":
-                return SELECT;
-            case "update":
-                return UPDATE;
+            case "check":
+                return CHECK;
+            case "grant":
+                return GRANT;
+            case "revoke":
+                return REVOKE;
+            case "disable":
+                return DISABLE;
+            case "create":
+                return CREATE;
+            case "remove":
+                return REMOVE;
             default:
                 return UNKNOWN_TYPE;
         }
-    }
-
-    /**
-     * can type generate model in access model.
-     *
-     * @param type action type
-     * @return can generate
-     */
-    public static Boolean canGenerateModel(final PrivilegeActionType type) {
-        if (PrivilegeActionType.INSERT == type) {
-            return true;
-        } else if (PrivilegeActionType.DELETE == type) {
-            return true;
-        } else if (PrivilegeActionType.SELECT == type) {
-            return true;
-        } else if (PrivilegeActionType.UPDATE == type) {
-            return true;
-        } else if (PrivilegeActionType.UNKNOWN_TYPE == type) {
-            return false;
-        }
-        return false;
     }
 }

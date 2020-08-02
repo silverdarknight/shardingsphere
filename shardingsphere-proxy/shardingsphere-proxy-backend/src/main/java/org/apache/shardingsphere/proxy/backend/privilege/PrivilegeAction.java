@@ -1,45 +1,37 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shardingsphere.proxy.backend.privilege;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.shardingsphere.infra.exception.ShardingSphereException;
+import org.apache.shardingsphere.proxy.backend.privilege.common.DCLActionType;
 import org.apache.shardingsphere.proxy.backend.privilege.impl.UserInformation;
 
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * byUser-create    -isUser-name+pw
- *                  -name
- *        remove    -isUser-name
- *                  -name
- *        disable   -isUser-name
- *                  -name
- *        revoke    -isUser-name-privilegeType-pathParameters
- *                              -roleName
- *                  -name-privilegeType-pathParameters
- *        grant     -isUser-name-privilegeType-pathParameters
- *                              -roleName
- *                  -name-privilegeType-pathParameters
- *
- *        check     -privilegeType-name-pathParameters
- */
 @Getter
 @Setter
 public final class PrivilegeAction {
 
-    public static String CREATE="create"
-            ,REMOVE = "remove"
-            ,DISABLE = "disable"
-            ,REVOKE = "revoke"
-            ,GRANT = "grant"
-            ,CHECK = "check";
+    private String byUser = UserInformation.getDefaultUser();
 
-    // action by user
-    private String byUser = UserInformation.DEFAULT_USER;
-
-    private String actionType;
+    private DCLActionType actionType;
 
     private Boolean isUser;
 
@@ -59,167 +51,300 @@ public final class PrivilegeAction {
 
     private Boolean privilegePathValid;
 
-    public String[] splitInformationByDot(String information){
+    /**
+     * split database and table.
+     *
+     * @param information db and table
+     * @return array db and table
+     */
+    public String[] splitInformationByDot(final String information) {
         String[] dbAndTable = information.split("\\.");
         return dbAndTable;
     }
 
-    public static PrivilegeAction addUser(String byUser, String name, String pw){
+    /**
+     * construct add user action.
+     *
+     * @param byUser by user
+     * @param name user name
+     * @param pw password
+     * @return action
+     */
+    public static PrivilegeAction addUser(final String byUser, final String name, final String pw) {
         PrivilegeAction action = new PrivilegeAction();
         action.setByUser(byUser);
-        action.setActionType(PrivilegeAction.CREATE);
+        action.setActionType(DCLActionType.CREATE);
         action.setIsUser(true);
         action.setName(name);
         action.setPassword(pw);
         return action;
     }
 
-    public static PrivilegeAction addRole(String byUser, String name){
+    /**
+     * construct add role action.
+     *
+     * @param byUser by user
+     * @param name user name
+     * @return action
+     */
+    public static PrivilegeAction addRole(final String byUser, final String name) {
         PrivilegeAction action = new PrivilegeAction();
         action.setByUser(byUser);
-        action.setActionType(PrivilegeAction.CREATE);
+        action.setActionType(DCLActionType.CREATE);
         action.setIsUser(false);
         action.setName(name);
         return action;
     }
 
-    public static PrivilegeAction removeUser(String byUser, String name){
+    /**
+     * construct remove user action.
+     *
+     * @param byUser by user
+     * @param name user name
+     * @return action
+     */
+    public static PrivilegeAction removeUser(final String byUser, final String name) {
         PrivilegeAction action = new PrivilegeAction();
         action.setByUser(byUser);
-        action.setActionType(PrivilegeAction.REMOVE);
+        action.setActionType(DCLActionType.REMOVE);
         action.setIsUser(true);
         action.setName(name);
         return action;
     }
 
-    public static PrivilegeAction removeRole(String byUser, String name){
+    /**
+     * construct remove role action.
+     *
+     * @param byUser by user
+     * @param name user name
+     * @return action
+     */
+    public static PrivilegeAction removeRole(final String byUser, final String name) {
         PrivilegeAction action = new PrivilegeAction();
         action.setByUser(byUser);
-        action.setActionType(PrivilegeAction.REMOVE);
+        action.setActionType(DCLActionType.REMOVE);
         action.setIsUser(false);
         action.setName(name);
         return action;
     }
 
-    public static PrivilegeAction disableUser(String byUser, String name){
+    /**
+     * disable user action.
+     *
+     * @param byUser by user
+     * @param name user name
+     * @return action
+     */
+    public static PrivilegeAction disableUser(final String byUser, final String name) {
         PrivilegeAction action = new PrivilegeAction();
         action.setByUser(byUser);
-        action.setActionType(PrivilegeAction.DISABLE);
+        action.setActionType(DCLActionType.DISABLE);
         action.setIsUser(true);
         action.setName(name);
         return action;
     }
 
-    public static PrivilegeAction checkPrivilege(String byUser, String name,
-                                                 String privilegeType,
-                                                 String dbName,
-                                                 String tableName,
-                                                 List<String> cols){
+    /**
+     * check privilege action.
+     *
+     * @param byUser by user
+     * @param name user name
+     * @param privilegeType check type
+     * @param dbName database
+     * @param tableName table name
+     * @param cols columns
+     * @return action
+     */
+    public static PrivilegeAction checkPrivilege(final String byUser,
+                                                 final String name,
+                                                 final String privilegeType,
+                                                 final String dbName,
+                                                 final String tableName,
+                                                 final List<String> cols) {
         PrivilegeAction action = new PrivilegeAction();
         action.setByUser(byUser);
-        action.setActionType(PrivilegeAction.CHECK);
+        action.setActionType(DCLActionType.CHECK);
         action.setName(name);
         action.setPrivilegeType(privilegeType);
         action.setDbName(dbName);
         action.setTableName(tableName);
-        if(cols.size()==0) action.setColumns(null);
-        else action.setColumns(cols);
+        if (cols.size() == 0) {
+            action.setColumns(null);
+        } else {
+            action.setColumns(cols);
+        }
         return action;
     }
 
-    public static PrivilegeAction grantUserPrivilege(String byUser, String name,
-                                                 String privilegeType,
-                                                 String dbName,
-                                                 String tableName,
-                                                 List<String> cols){
+    /**
+     * grant user action.
+     *
+     * @param byUser by user
+     * @param name user name
+     * @param privilegeType grant type
+     * @param dbName database
+     * @param tableName table
+     * @param cols columns
+     * @return action
+     */
+    public static PrivilegeAction grantUserPrivilege(final String byUser,
+                                                     final String name,
+                                                     final String privilegeType,
+                                                     final String dbName,
+                                                     final String tableName,
+                                                     final List<String> cols) {
         PrivilegeAction action = new PrivilegeAction();
         action.setByUser(byUser);
-        action.setActionType(PrivilegeAction.GRANT);
+        action.setActionType(DCLActionType.GRANT);
         action.setIsUser(true);
         action.setName(name);
         action.setPrivilegeType(privilegeType);
         action.setDbName(dbName);
         action.setTableName(tableName);
-        if(cols.size()==0) action.setColumns(null);
-        else action.setColumns(cols);
+        if (cols.size() == 0) {
+            action.setColumns(null);
+        } else {
+            action.setColumns(cols);
+        }
         return action;
     }
 
-    public static PrivilegeAction grantUserRole(String byUser,
-                                                String name,
-                                                String roleName){
+    /**
+     * grant user role.
+     *
+     * @param byUser by user
+     * @param name user name
+     * @param roleName role name
+     * @return action
+     */
+    public static PrivilegeAction grantUserRole(final String byUser,
+                                                final String name,
+                                                final String roleName) {
         PrivilegeAction action = new PrivilegeAction();
         action.setByUser(byUser);
-        action.setActionType(PrivilegeAction.GRANT);
+        action.setActionType(DCLActionType.GRANT);
         action.setIsUser(true);
         action.setName(name);
         action.setRoleName(roleName);
         return action;
     }
 
-    public static PrivilegeAction grantRolePrivilege(String byUser, String name,
-                                                     String privilegeType,
-                                                     String dbName,
-                                                     String tableName,
-                                                     List<String> cols){
+    /**
+     * grant role.
+     *
+     * @param byUser by user
+     * @param name user name
+     * @param privilegeType privilege type
+     * @param dbName database
+     * @param tableName table
+     * @param cols columns
+     * @return action
+     */
+    public static PrivilegeAction grantRolePrivilege(final String byUser,
+                                                     final String name,
+                                                     final String privilegeType,
+                                                     final String dbName,
+                                                     final String tableName,
+                                                     final List<String> cols) {
         PrivilegeAction action = new PrivilegeAction();
         action.setByUser(byUser);
-        action.setActionType(PrivilegeAction.GRANT);
+        action.setActionType(DCLActionType.GRANT);
         action.setIsUser(false);
         action.setName(name);
         action.setPrivilegeType(privilegeType);
         action.setDbName(dbName);
         action.setTableName(tableName);
-        if(cols.size()==0) action.setColumns(null);
-        else action.setColumns(cols);
+        if (cols.size() == 0) {
+            action.setColumns(null);
+        } else {
+            action.setColumns(cols);
+        }
         return action;
     }
 
-    public static PrivilegeAction revokeUserPrivilege(String byUser, String name,
-                                                     String privilegeType,
-                                                     String dbName,
-                                                     String tableName,
-                                                     List<String> cols){
+    /**
+     * revoke privilege.
+     *
+     * @param byUser by user
+     * @param name user name
+     * @param privilegeType privilege type
+     * @param dbName database
+     * @param tableName table
+     * @param cols columns
+     * @return action
+     */
+    public static PrivilegeAction revokeUserPrivilege(final String byUser,
+                                                      final String name,
+                                                      final String privilegeType,
+                                                      final String dbName,
+                                                      final String tableName,
+                                                      final List<String> cols) {
         PrivilegeAction action = new PrivilegeAction();
         action.setByUser(byUser);
-        action.setActionType(PrivilegeAction.REVOKE);
+        action.setActionType(DCLActionType.REVOKE);
         action.setIsUser(true);
         action.setName(name);
         action.setPrivilegeType(privilegeType);
         action.setDbName(dbName);
         action.setTableName(tableName);
-        if(cols.size()==0) action.setColumns(null);
-        else action.setColumns(cols);
+        if (cols.size() == 0) {
+            action.setColumns(null);
+        } else {
+            action.setColumns(cols);
+        }
         return action;
     }
 
-    public static PrivilegeAction revokeUserRole(String byUser,
-                                                String name,
-                                                String roleName){
+    /**
+     * revoke role.
+     *
+     * @param byUser by user
+     * @param name user name
+     * @param roleName role name
+     * @return action
+     */
+    public static PrivilegeAction revokeUserRole(final String byUser,
+                                                 final String name,
+                                                 final String roleName) {
         PrivilegeAction action = new PrivilegeAction();
         action.setByUser(byUser);
-        action.setActionType(PrivilegeAction.REVOKE);
+        action.setActionType(DCLActionType.REVOKE);
         action.setIsUser(true);
         action.setName(name);
         action.setRoleName(roleName);
         return action;
     }
 
-    public static PrivilegeAction revokeRolePrivilege(String byUser, String name,
-                                                     String privilegeType,
-                                                     String dbName,
-                                                     String tableName,
-                                                     List<String> cols){
+    /**
+     * revoke role privilege.
+     *
+     * @param byUser by user
+     * @param name role name
+     * @param privilegeType privilege type
+     * @param dbName database
+     * @param tableName table
+     * @param cols columns
+     * @return action
+     */
+    public static PrivilegeAction revokeRolePrivilege(final String byUser,
+                                                      final String name,
+                                                      final String privilegeType,
+                                                      final String dbName,
+                                                      final String tableName,
+                                                      final List<String> cols) {
         PrivilegeAction action = new PrivilegeAction();
         action.setByUser(byUser);
-        action.setActionType(PrivilegeAction.REVOKE);
+        action.setActionType(DCLActionType.REVOKE);
         action.setIsUser(false);
         action.setName(name);
         action.setPrivilegeType(privilegeType);
         action.setDbName(dbName);
         action.setTableName(tableName);
-        if(cols.size()==0) action.setColumns(null);
-        else action.setColumns(cols);
+        if (cols.size() == 0) {
+            action.setColumns(null);
+        } else {
+            action.setColumns(cols);
+        }
         return action;
     }
 }

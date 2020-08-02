@@ -27,29 +27,29 @@ public class RootNodeTest {
     private PrivilegeRootNode rootNode = new PrivilegeRootNode("table");
 
     @Test
-    public void addTest(){
-        assertThat(rootNode.addChild("*"),is(true));
-        assertThat(rootNode.addChild("*"),is(false));
-        assertThat(rootNode.addChild("col"),is(true));
-        assertThat(rootNode.addChild("col"),is(false));
+    public void addTest() {
+        assertThat(rootNode.addChild("*"), is(true));
+        assertThat(rootNode.addChild("*"), is(false));
+        assertThat(rootNode.addChild("col"), is(true));
+        assertThat(rootNode.addChild("col"), is(false));
     }
 
     @Test
-    public void removeTest(){
+    public void removeTest() {
         rootNode.addChild("*");
         rootNode.addChild("col");
-        assertThat(rootNode.removeChild("col"),is(true));
-        assertThat(rootNode.removeChild("col"),is(false));
-        assertThat(rootNode.removeChild("*"),is(true));
-        assertThat(rootNode.removeChild("*"),is(false));
+        assertThat(rootNode.removeChild("col"), is(true));
+        assertThat(rootNode.removeChild("col"), is(false));
+        assertThat(rootNode.removeChild("*"), is(true));
+        assertThat(rootNode.removeChild("*"), is(false));
     }
 
     @Test
-    public void containsTest(){
+    public void containsTest() {
         rootNode.addChild("col");
-        assertThat(rootNode.containsChild("col"),is(true));
-        assertThat(rootNode.containsChild("col_false"),is(false));
+        assertThat(rootNode.containsChild("col"), is(true));
+        assertThat(rootNode.containsChild("col_false"), is(false));
         rootNode.addChild("*");
-        assertThat(rootNode.containsChild("col_false"),is(true));
+        assertThat(rootNode.containsChild("col_false"), is(true));
     }
 }
