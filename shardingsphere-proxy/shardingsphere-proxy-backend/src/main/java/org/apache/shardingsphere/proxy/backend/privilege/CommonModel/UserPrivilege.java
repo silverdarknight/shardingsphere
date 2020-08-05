@@ -15,59 +15,53 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.proxy.backend.privilege.impl;
+package org.apache.shardingsphere.proxy.backend.privilege.CommonModel;
 
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.LinkedList;
 import java.util.Objects;
 
 @Getter
 @Setter
-public final class UserInformation implements Serializable {
+public final class UserPrivilege extends PrivilegeModel implements Serializable {
 
-    private static final long serialVersionUID = 2847558164326116634L;
-
-    private static String rootUser = "ROOT";
-
-    private static String defaultUser = "ANONYMOUS";
-
-    private String userName;
-
-    private String password;
-
-    public UserInformation(final String userName, final String password) {
-        this.setUserName(userName);
-        this.setPassword(password);
-    }
-
+    private static final long serialVersionUID = -8606546448540297926L;
+    
+    private Collection<String> roles = new HashSet<>();
 
     /**
-     * get root user.
+     * get role name list.
      *
-     * @return root user name
+     * @return role name list
      */
-    public static String getRootUser() {
-        return rootUser;
+    public List<String> getRolesName() {
+        List<String> rolesName = new LinkedList<>();
+        rolesName.addAll(getRoles());
+        return rolesName;
     }
 
     /**
-     * get default user.
+     * grant role for user.
      *
-     * @return default user name
+     * @param role role name
      */
-    public static String getDefaultUser() {
-        return defaultUser;
+    public void grant(final String role) {
+        this.getRoles().add(role);
     }
 
     /**
-     * set user password.
+     * revoke role for user.
      *
-     * @param password password
+     * @param role role name
      */
-    public void setPassword(final String password) {
-        this.password = password;
+    public void revoke(final String role) {
+        this.getRoles().remove(role);
     }
 
     @Override
@@ -78,13 +72,16 @@ public final class UserInformation implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        UserInformation that = (UserInformation) o;
-        return Objects.equals(userName, that.userName)
-                && Objects.equals(password, that.password);
+        if (!super.equals(o)) {
+            return false;
+        }
+        UserPrivilege that = (UserPrivilege) o;
+        return Objects.equals(roles, that.roles)
+                && super.equals(that);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userName, password);
+        return Objects.hash(super.hashCode(), roles);
     }
 }

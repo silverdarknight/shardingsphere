@@ -35,17 +35,24 @@ public class AbstractNodeTest {
 
     @Test
     public void likePathTest() {
+        abstractNode.setStar();
+        assertThat(abstractNode.getContainsStar(), is(true));
     }
 
     @Test
     public void contentIsRegTest() {
+        assertThat(abstractNode.contentIsReg("col"), is(false));
     }
 
     @Test
     public void containsOffspringTest() {
+        abstractNode = new PrivilegeTableNode("testTable");
+        assertThat(abstractNode.containsOffspring(), is(false));
         abstractNode.setStar();
         assertThat(abstractNode.containsOffspring(), is(true));
         abstractNode = new PrivilegeTableNode("testTable");
+        abstractNode.addChild("test");
+        assertThat(abstractNode.containsOffspring(), is(true));
     }
 
     @Test
@@ -65,6 +72,7 @@ public class AbstractNodeTest {
 
     @Test
     public void containsNodeTest() {
+        assertThat(abstractNode.containsNode("col"), is(false));
         abstractNode.setStar();
         assertThat(abstractNode.containsNode("*"), is(true));
         abstractNode.addChild("col");

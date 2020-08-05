@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.proxy.backend.privilege.impl;
+package org.apache.shardingsphere.proxy.backend.privilege.CommonModel;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.shardingsphere.proxy.backend.privilege.PrivilegeModel;
 
 import java.io.Serializable;
 import java.util.Objects;

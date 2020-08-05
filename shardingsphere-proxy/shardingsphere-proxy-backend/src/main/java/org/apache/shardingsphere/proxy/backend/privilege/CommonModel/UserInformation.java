@@ -15,54 +15,59 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.proxy.backend.privilege.impl;
+package org.apache.shardingsphere.proxy.backend.privilege.CommonModel;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.shardingsphere.proxy.backend.privilege.PrivilegeModel;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.LinkedList;
 import java.util.Objects;
 
 @Getter
 @Setter
-public final class UserPrivilege extends PrivilegeModel implements Serializable {
+public final class UserInformation implements Serializable {
 
-    private static final long serialVersionUID = -8606546448540297926L;
-    
-    private Collection<String> roles = new HashSet<>();
+    private static final long serialVersionUID = 2847558164326116634L;
+
+    private static String rootUser = "ROOT";
+
+    private static String defaultUser = "ANONYMOUS";
+
+    private String userName;
+
+    private String password;
+
+    public UserInformation(final String userName, final String password) {
+        this.setUserName(userName);
+        this.setPassword(password);
+    }
+
 
     /**
-     * get role name list.
+     * get root user.
      *
-     * @return role name list
+     * @return root user name
      */
-    public List<String> getRolesName() {
-        List<String> rolesName = new LinkedList<>();
-        rolesName.addAll(getRoles());
-        return rolesName;
+    public static String getRootUser() {
+        return rootUser;
     }
 
     /**
-     * grant role for user.
+     * get default user.
      *
-     * @param role role name
+     * @return default user name
      */
-    public void grant(final String role) {
-        this.getRoles().add(role);
+    public static String getDefaultUser() {
+        return defaultUser;
     }
 
     /**
-     * revoke role for user.
+     * set user password.
      *
-     * @param role role name
+     * @param password password
      */
-    public void revoke(final String role) {
-        this.getRoles().remove(role);
+    public void setPassword(final String password) {
+        this.password = password;
     }
 
     @Override
@@ -73,16 +78,13 @@ public final class UserPrivilege extends PrivilegeModel implements Serializable 
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        if (!super.equals(o)) {
-            return false;
-        }
-        UserPrivilege that = (UserPrivilege) o;
-        return Objects.equals(roles, that.roles)
-                && super.equals(that);
+        UserInformation that = (UserInformation) o;
+        return Objects.equals(userName, that.userName)
+                && Objects.equals(password, that.password);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), roles);
+        return Objects.hash(userName, password);
     }
 }

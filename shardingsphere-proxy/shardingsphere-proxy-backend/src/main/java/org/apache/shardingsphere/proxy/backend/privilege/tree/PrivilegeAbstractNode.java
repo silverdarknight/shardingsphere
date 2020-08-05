@@ -44,16 +44,21 @@ public abstract class PrivilegeAbstractNode implements Serializable {
         this.content = content.trim();
     }
 
-    protected Boolean hasStar() {
+    /**
+     * whether node has *.
+     *
+     * @return has *
+     */
+    public Boolean hasStar() {
         return containsStar;
     }
 
-    protected void setStar() {
+    /**
+     * set * for node.
+     *
+     */
+    public void setStar() {
         containsStar = true;
-    }
-
-    protected String getContent() {
-        return content;
     }
 
     /**

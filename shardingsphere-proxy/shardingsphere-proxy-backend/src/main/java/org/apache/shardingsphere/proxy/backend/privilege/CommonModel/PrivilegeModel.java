@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.proxy.backend.privilege;
+package org.apache.shardingsphere.proxy.backend.privilege.CommonModel;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -121,7 +121,7 @@ public abstract class PrivilegeModel implements Serializable {
         }
     }
 
-    protected void grant(final String privilegeType,
+    public void grant(final String privilegeType,
                          final String dbName,
                          final String tableName,
                          final List<String> cols) {
@@ -129,12 +129,12 @@ public abstract class PrivilegeModel implements Serializable {
         targetPrivilegeTree.grantPath(dbName, tableName, cols);
     }
 
-    protected void grant(final String privilegeType, final String dbName, final String tableName) {
+    public void grant(final String privilegeType, final String dbName, final String tableName) {
         PrivilegeTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
         targetPrivilegeTree.grantPath(dbName, tableName);
     }
 
-    protected void grant(final String privilegeType,
+    public void grant(final String privilegeType,
                          final String information) {
         String[] splitInfo = splitInformation(information);
         if (splitInfo.length == 1) {
@@ -146,7 +146,7 @@ public abstract class PrivilegeModel implements Serializable {
         }
     }
 
-    protected void grant(final String privilegeType,
+    public void grant(final String privilegeType,
                          final String information,
                          final List<String> cols) {
         String[] splitInfo = splitInformation(information);
@@ -159,7 +159,7 @@ public abstract class PrivilegeModel implements Serializable {
         }
     }
 
-    protected void revoke(final String privilegeType,
+    public void revoke(final String privilegeType,
                           final String dbName,
                           final String tableName,
                           final List<String> cols) {
@@ -167,12 +167,12 @@ public abstract class PrivilegeModel implements Serializable {
         targetPrivilegeTree.revokePath(dbName, tableName, cols);
     }
 
-    protected void revoke(final String privilegeType, final String dbName, final String tableName) {
+    public void revoke(final String privilegeType, final String dbName, final String tableName) {
         PrivilegeTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
         targetPrivilegeTree.revokePath(dbName, tableName);
     }
 
-    protected void revoke(final String privilegeType, final String information) {
+    public void revoke(final String privilegeType, final String information) {
         String[] splitInfo = splitInformation(information);
         if (splitInfo.length == 1) {
             revoke(privilegeType, splitInfo[0]);
@@ -183,7 +183,7 @@ public abstract class PrivilegeModel implements Serializable {
         }
     }
 
-    protected void revoke(final String privilegeType,
+    public void revoke(final String privilegeType,
                           final String information,
                           final List<String> cols) {
         String[] splitInfo = splitInformation(information);

@@ -53,4 +53,10 @@ public class TableNodeTest {
         assertThat(tableNode.containsChild("col_false"), is(true));
     }
 
+    @Test
+    public void clearEmptyPathsTest() {
+        tableNode.addChild("col");
+        assertThat(tableNode.clearEmptyPaths(), is(false));
+    }
+
 }

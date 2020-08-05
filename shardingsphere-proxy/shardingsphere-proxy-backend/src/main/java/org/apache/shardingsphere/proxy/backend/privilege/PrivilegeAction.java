@@ -20,7 +20,7 @@ package org.apache.shardingsphere.proxy.backend.privilege;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.shardingsphere.proxy.backend.privilege.common.DCLActionType;
-import org.apache.shardingsphere.proxy.backend.privilege.impl.UserInformation;
+import org.apache.shardingsphere.proxy.backend.privilege.CommonModel.UserInformation;
 
 import java.util.LinkedList;
 import java.util.List;

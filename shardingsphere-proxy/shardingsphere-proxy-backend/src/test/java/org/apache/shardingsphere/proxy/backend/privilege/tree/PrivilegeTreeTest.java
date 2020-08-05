@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.proxy.backend.privilege;
+package org.apache.shardingsphere.proxy.backend.privilege.tree;
 
 import org.apache.shardingsphere.proxy.backend.privilege.tree.PrivilegeTree;
 import org.junit.Test;
