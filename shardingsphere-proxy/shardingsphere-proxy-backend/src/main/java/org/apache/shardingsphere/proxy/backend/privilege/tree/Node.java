@@ -19,29 +19,26 @@ package org.apache.shardingsphere.proxy.backend.privilege.tree;
 
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.List;
+import java.util.LinkedList;
 import java.util.Iterator;
 import java.util.Objects;
 
-@Getter(AccessLevel.PROTECTED)
-@Setter(AccessLevel.PROTECTED)
-public abstract class PrivilegeAbstractNode implements Serializable {
+@Getter(AccessLevel.PUBLIC)
+public class Node implements Serializable {
 
-    private String content;
+    private static final long serialVersionUID = 8576835394234353733L;
 
-    private Collection<PrivilegeAbstractNode> offspring = new HashSet<>();
+    private final String content;
+
+    private final List<Node> offspring = new LinkedList<>();
 
     private Boolean containsStar = false;
 
-    private Boolean isRegNode;
-
-    public PrivilegeAbstractNode(final String content) {
-        isRegNode = contentIsReg(content);
-        this.content = content.trim();
+    public Node(final String path) {
+        content = path;
     }
 
     /**
@@ -62,37 +59,6 @@ public abstract class PrivilegeAbstractNode implements Serializable {
     }
 
     /**
-     * if node uses reg, check equals, or use likePath to check.
-     *
-     * @param path input node path
-     */
-    protected Boolean isPath(final String path) {
-        if (!isRegNode) {
-            return equalsContent(path);
-        } else {
-            return likePath(path);
-        }
-    }
-
-    /**
-     * check whether path.matches(reg).
-     *
-     * @param path input node path
-     */
-    protected Boolean likePath(final String path) {
-        return true; }
-
-    /**
-     * input content, check whether type of content is reg.
-     *
-     * @param content input node path
-     * @return is reg
-     */
-    protected Boolean contentIsReg(final String content) {
-        return false;
-    }
-
-    /**
      * check empty node.
      *
      * @return offspring is empty and do not have *
@@ -108,9 +74,9 @@ public abstract class PrivilegeAbstractNode implements Serializable {
      */
     protected Boolean clearEmptyPaths() {
         if (containsOffspring()) {
-            Iterator<PrivilegeAbstractNode> iterator = offspring.iterator();
+            Iterator<Node> iterator = offspring.iterator();
             while (iterator.hasNext()) {
-                PrivilegeAbstractNode nextGenNode = iterator.next();
+                Node nextGenNode = iterator.next();
                 Boolean clearMySelf = nextGenNode.clearEmptyPaths();
                 if (clearMySelf) {
                     iterator.remove();
@@ -128,11 +94,11 @@ public abstract class PrivilegeAbstractNode implements Serializable {
      * @param path child content
      * @return target node
      */
-    protected PrivilegeAbstractNode getChild(final String path) {
-        Iterator<PrivilegeAbstractNode> iterator = offspring.iterator();
+    public Node getChild(final String path) {
+        Iterator<Node> iterator = offspring.iterator();
         while (iterator.hasNext()) {
-            PrivilegeAbstractNode curNode = iterator.next();
-            if (curNode.content.equals(path.trim())) {
+            Node curNode = iterator.next();
+            if (curNode.getContent().equals(path)) {
                 return curNode;
             }
         }
@@ -145,13 +111,13 @@ public abstract class PrivilegeAbstractNode implements Serializable {
      * @param path input path
      * @return contains path
      */
-    protected Boolean containsNode(final String path) {
-        if (path.trim().equals("*") && containsStar) {
+    public Boolean containsChild(final String path) {
+        if ("*".equals(path) && containsStar) {
             return true;
         }
-        Iterator<PrivilegeAbstractNode> iterator = offspring.iterator();
+        Iterator<Node> iterator = offspring.iterator();
         while (iterator.hasNext()) {
-            PrivilegeAbstractNode curTableNode = iterator.next();
+            Node curTableNode = iterator.next();
             if (curTableNode.equalsContent(path)) {
                 return true;
             }
@@ -160,14 +126,59 @@ public abstract class PrivilegeAbstractNode implements Serializable {
     }
 
     private Boolean equalsContent(final String content) {
-        return content.trim().equals(this.content);
+        return content.equals(this.content);
     }
 
-    protected abstract Boolean addChild(String path);
+    /**
+     * add child node.
+     *
+     * @param path content path
+     * @return add successful
+     */
+    public Boolean addChild(final String path) {
+        if ("*".equals(path)) {
+            if (getContainsStar()) {
+                return false;
+            }
+            containsStar = true;
+            return true;
+        }
+        Node colNode = new Node(path);
+        Iterator<Node> iterator = getOffspring().iterator();
+        while (iterator.hasNext()) {
+            if (iterator.next().getContent().equals(path)) {
+                return false;
+            }
+        }
+        getOffspring().add(colNode);
+        return true;
+    }
 
-    protected abstract Boolean removeChild(String path);
-
-    protected abstract Boolean containsChild(String path);
+    /**
+     * remove child.
+     *
+     * @param path content path
+     * @return remove success
+     */
+    public Boolean removeChild(final String path) {
+        if ("*".equals(path)) {
+            if (!containsOffspring()) {
+                return false;
+            }
+            containsStar = false;
+            return true;
+        } else {
+            Iterator<Node> iterator = getOffspring().iterator();
+            while (iterator.hasNext()) {
+                Node curColNode = iterator.next();
+                if (curColNode.getContent().equals(path)) {
+                    iterator.remove();
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 
     @Override
     public boolean equals(final Object o) {
@@ -177,12 +188,14 @@ public abstract class PrivilegeAbstractNode implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        PrivilegeAbstractNode that = (PrivilegeAbstractNode) o;
-        return Objects.equals(content, that.content);
+        Node node = (Node) o;
+        return Objects.equals(content, node.content)
+                && Objects.equals(offspring, node.offspring)
+                && Objects.equals(containsStar, node.containsStar);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(content);
+        return Objects.hash(content, offspring, containsStar);
     }
 }

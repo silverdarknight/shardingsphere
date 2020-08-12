@@ -18,58 +18,65 @@
 package org.apache.shardingsphere.proxy.backend.privilege;
 
 import org.apache.shardingsphere.infra.yaml.engine.YamlEngine;
-import org.apache.shardingsphere.proxy.backend.privilege.CommonModel.RolePrivilege;
-import org.apache.shardingsphere.proxy.backend.privilege.CommonModel.UserInformation;
-import org.apache.shardingsphere.proxy.backend.privilege.CommonModel.UserPrivilege;
+import org.apache.shardingsphere.proxy.backend.privilege.model.RolePrivilege;
+import org.apache.shardingsphere.proxy.backend.privilege.model.UserInformation;
+import org.apache.shardingsphere.proxy.backend.privilege.model.UserPrivilege;
 import org.apache.shardingsphere.proxy.config.ShardingConfigurationLoader;
 import org.apache.shardingsphere.proxy.config.yaml.YamlAccessModel;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
+import java.util.Collection;
+import java.util.List;
+import java.util.LinkedList;
 
 import static org.junit.Assert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 
-public class AccessModelTest {
+public class AccessModelTestWithAction {
 
-    @Test
-    public void constructTest() throws IOException, ClassNotFoundException {
+    private YamlAccessModel yamlAccessModel;
+
+    private AccessModel accessModel;
+
+    @Before
+    public void constructYamlModel() throws IOException {
         File privilegeFile = new File(
                 ShardingConfigurationLoader.class.getResource("/conf" + "/" + "privilege.yaml")
                         .getFile());
-        YamlAccessModel yamlAccessModel = YamlEngine.unmarshal(privilegeFile, YamlAccessModel.class);
-        AccessModel accessModel = new AccessModel(yamlAccessModel);
+        yamlAccessModel = YamlEngine.unmarshal(privilegeFile, YamlAccessModel.class);
+        accessModel = new AccessModel(yamlAccessModel);
+    }
+
+    @Test
+    public void deserializeAndToByteTest() throws IOException, ClassNotFoundException {
         byte[] b = accessModel.toBytes();
         AccessModel accessModel1 = AccessModel.deserialize(b);
+        assertThat(accessModel.equals(accessModel1), is(true));
         byte[] userInfoBytes = accessModel.informationToBytes();
         Map<String, UserInformation> userInformation1 = AccessModel.deserializeUserInformation(userInfoBytes);
         byte[] userPrivilegeBytes = accessModel.usersPrivilegeToBytes();
         Map<String, UserPrivilege> userPrivilegeMap = AccessModel.deserializeUsersPrivilege(userPrivilegeBytes);
-        byte[] rolePrivilegeBytes = accessModel.informationToBytes();
+        byte[] rolePrivilegeBytes = accessModel.rolePrivilegesToBytes();
         Map<String, RolePrivilege> rolePrivilegeMap = AccessModel.deserializeRolePrivileges(rolePrivilegeBytes);
         byte[] invalidGroupBytes = accessModel.invalidGroupToBytes();
         Collection<String> invalidGroups1 = AccessModel.deserializeInvalidGroup(invalidGroupBytes);
+        accessModel1.updateInformation(userInformation1);
+        accessModel1.updateRolePrivileges(rolePrivilegeMap);
+        accessModel1.updateUsersPrivilege(userPrivilegeMap);
+        accessModel1.updateInvalidGroup(invalidGroups1);
+        assertThat(accessModel.equals(accessModel1), is(true));
         assertThat(accessModel.getRolesPrivileges().size(), is(2));
         assertThat(accessModel.getUsersPrivilege().size(), is(2));
         assertThat(accessModel.getUserInformationMap().get("user3").getPassword(), is("pw3"));
         assertThat(accessModel.getUsersPrivilege().containsKey("user3"), is(false));
-        assertThat(accessModel.getUsersPrivilege().get("user1").checkPrivilege("select", "testDB.testTable"), is(false));
-        assertThat(accessModel.getUsersPrivilege().get("user1").checkPrivilege("delete", "testDB.testTable"), is(true));
-        assertThat(accessModel.getUsersPrivilege().get("user1").checkPrivilege("select", "testDB.testTable.col1"), is(true));
     }
 
     @Test
-    public void actionTestManageUser() throws IOException {
-        File privilegeFile = new File(
-                ShardingConfigurationLoader.class.getResource("/conf" + "/" + "privilege.yaml")
-                        .getFile());
-        YamlAccessModel yamlAccessModel = YamlEngine.unmarshal(privilegeFile, YamlAccessModel.class);
-        AccessModel accessModel = new AccessModel(yamlAccessModel);
+    public void actionTestManageUser() {
         PrivilegeAction createUserAction = PrivilegeAction.addUser("root", "user3", "x");
         PrivilegeAction createRoleAction = PrivilegeAction.addRole("root", "role3");
         accessModel.doAction(createUserAction);
@@ -88,12 +95,7 @@ public class AccessModelTest {
     }
 
     @Test
-    public void actionTestCheck() throws IOException {
-        File privilegeFile = new File(
-                ShardingConfigurationLoader.class.getResource("/conf" + "/" + "privilege.yaml")
-                        .getFile());
-        YamlAccessModel yamlAccessModel = YamlEngine.unmarshal(privilegeFile, YamlAccessModel.class);
-        AccessModel accessModel = new AccessModel(yamlAccessModel);
+    public void actionTestCheck() {
         PrivilegeAction checkUserTableAction = PrivilegeAction.checkPrivilege("root",
                 "user1",
                 "insert",
@@ -113,12 +115,7 @@ public class AccessModelTest {
     }
 
     @Test
-    public void actionGrantTest() throws IOException {
-        File privilegeFile = new File(
-                ShardingConfigurationLoader.class.getResource("/conf" + "/" + "privilege.yaml")
-                        .getFile());
-        YamlAccessModel yamlAccessModel = YamlEngine.unmarshal(privilegeFile, YamlAccessModel.class);
-        AccessModel accessModel = new AccessModel(yamlAccessModel);
+    public void actionGrantTest() {
         PrivilegeAction addRoleAction = PrivilegeAction.addRole("root", "role3");
         accessModel.doAction(addRoleAction);
         // grant user role
@@ -214,12 +211,7 @@ public class AccessModelTest {
     }
 
     @Test
-    public void actionRevokeTest() throws IOException {
-        File privilegeFile = new File(
-                ShardingConfigurationLoader.class.getResource("/conf" + "/" + "privilege.yaml")
-                        .getFile());
-        YamlAccessModel yamlAccessModel = YamlEngine.unmarshal(privilegeFile, YamlAccessModel.class);
-        AccessModel accessModel = new AccessModel(yamlAccessModel);
+    public void actionRevokeTest() {
         PrivilegeAction addRoleAction = PrivilegeAction.addRole("root", "role3");
         accessModel.doAction(addRoleAction);
         // revoke user role

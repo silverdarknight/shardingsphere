@@ -32,17 +32,17 @@ roleList:
       - information:
           'testDB.testTable'
         cols:
-          - ' col1'
+          - 'col1'
           - 'col2'
-          - ' col2'
-          - ' col3'
+          - 'col2'
+          - 'col3'
       - information:
           'testDB.testTable2'
         cols:
-          - ' col1'
+          - 'col1'
           - 'col2'
-          - ' col2'
-          - ' col3'
+          - 'col2'
+          - 'col3'
   role2:
     insert:
       - information:
@@ -59,17 +59,17 @@ roleList:
       - information:
           'testDB.testTable'
         cols:
-          - ' col1'
+          - 'col1'
           - 'col2'
-          - ' col2'
-          - ' col3'
+          - 'col2'
+          - 'col3'
       - information:
           'testDB.testTable2'
         cols:
-          - ' col1'
+          - 'col1'
           - 'col2'
-          - ' col2'
-          - ' col3'
+          - 'col2'
+          - 'col3'
 userList:
   user1:
     password:
@@ -93,12 +93,12 @@ userList:
         - information:
             'testDB.testTable'
           cols:
-            - ' col1'
+            - 'col1'
             - 'col2'
         - information:
             'testDB.testTable2'
           cols:
-            - ' col1'
+            - 'col1'
             - 'col2'
   user2:
     password:
@@ -122,17 +122,17 @@ userList:
         - information:
             'testDB.testTable'
           cols:
-            - ' col1'
+            - 'col1'
             - 'col2'
-            - ' col2'
-            - ' col3'
+            - 'col2'
+            - 'col3'
         - information:
             'testDB.testTable2'
           cols:
-            - ' col1'
+            - 'col1'
             - 'col2'
-            - ' col2'
-            - ' col3'
+            - 'col2'
+            - 'col3'
   user3:
     password:
       pw3

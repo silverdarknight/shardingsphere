@@ -27,7 +27,7 @@ import static org.junit.Assert.assertThat;
 
 public class TreeTest {
 
-    private PrivilegeTree treeNode = new PrivilegeTree();
+    private Tree treeNode = new Tree();
 
     @Test
     public void checkTableTest() {
@@ -41,7 +41,7 @@ public class TreeTest {
         assertThat(treeNode.checkPath("db", "table_false"), is(true));
         treeNode.getRoot().setStar();
         assertThat(treeNode.checkPath("db_false", "test_false"), is(true));
-        treeNode = new PrivilegeTree();
+        treeNode = new Tree();
     }
 
     @Test
@@ -49,6 +49,7 @@ public class TreeTest {
         treeNode.getRoot().addChild("db");
         treeNode.getRoot().getChild("db").addChild("table");
         treeNode.getRoot().getChild("db").getChild("table").addChild("col");
+        treeNode.getRoot().getChild("db").getChild("table").getChild("col").setStar();
         assertThat(treeNode.checkPath("db", "table", "col"), is(true));
         assertThat(treeNode.checkPath("db", "table", "col_false"), is(false));
         treeNode.getRoot().getChild("db").getChild("table").setStar();
@@ -59,7 +60,7 @@ public class TreeTest {
         assertThat(treeNode.checkPath("db_false", "table_false", "col_false"), is(false));
         treeNode.getRoot().setStar();
         assertThat(treeNode.checkPath("db_false", "test_false", "col_false"), is(true));
-        treeNode = new PrivilegeTree();
+        treeNode = new Tree();
     }
 
     @Test
@@ -71,7 +72,7 @@ public class TreeTest {
         assertThat(treeNode.checkPath("db", "table_false"), is(true));
         treeNode.grantPath("*", "*");
         assertThat(treeNode.checkPath("db_false", "table_false"), is(true));
-        treeNode = new PrivilegeTree();
+        treeNode = new Tree();
     }
 
     @Test
@@ -87,7 +88,7 @@ public class TreeTest {
         assertThat(treeNode.checkPath("db_f", "table_f", "col_f"), is(false));
         treeNode.grantPath("*", "*", "*");
         assertThat(treeNode.checkPath("db_f", "table_f", "col_f"), is(true));
-        treeNode = new PrivilegeTree();
+        treeNode = new Tree();
         List<String> cols = new LinkedList<>();
         cols.add("col1");
         cols.add("col2");
@@ -95,7 +96,7 @@ public class TreeTest {
         assertThat(treeNode.checkPath("db", "table", "col1"), is(true));
         assertThat(treeNode.checkPath("db", "table", "col2"), is(true));
         assertThat(treeNode.checkPath("db", "table", "col3"), is(false));
-        treeNode = new PrivilegeTree();
+        treeNode = new Tree();
     }
 
     @Test
@@ -123,5 +124,27 @@ public class TreeTest {
         treeNode.grantPath("db", "table", "col");
         treeNode.revokePath("db", "table", "*");
         assertThat(treeNode.getRoot().getOffspring().size(), is(0));
+    }
+
+    @Test
+    public void equalsTest() {
+        Tree tree1 = new Tree();
+        Tree tree2 = new Tree();
+        assertThat(tree1.equals(tree2), is(true));
+        tree1.getRoot().addChild("test");
+        assertThat(tree1.equals(tree2), is(false));
+        tree2.getRoot().addChild("test");
+        assertThat(tree1.equals(tree2), is(true));
+        tree1.getRoot().getChild("test").addChild("t2");
+        tree2.getRoot().getChild("test").addChild("t2");
+        assertThat(tree1.equals(tree2), is(true));
+        tree1.getRoot().setStar();
+        tree2.getRoot().setStar();
+        assertThat(tree1.equals(tree2), is(true));
+        tree1.getRoot().getChild("test").addChild("t3");
+        tree2.getRoot().getChild("test").addChild("t3");
+        tree1.getRoot().getChild("test").removeChild("t3");
+        tree2.getRoot().getChild("test").removeChild("t3");
+        assertThat(tree1.equals(tree2), is(true));
     }
 }

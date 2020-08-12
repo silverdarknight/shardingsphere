@@ -55,11 +55,8 @@ public enum PrivilegeActionType {
             return true;
         } else if (PrivilegeActionType.SELECT == type) {
             return true;
-        } else if (PrivilegeActionType.UPDATE == type) {
-            return true;
-        } else if (PrivilegeActionType.UNKNOWN_TYPE == type) {
-            return false;
+        } else {
+            return PrivilegeActionType.UPDATE == type;
         }
-        return false;
     }
 }

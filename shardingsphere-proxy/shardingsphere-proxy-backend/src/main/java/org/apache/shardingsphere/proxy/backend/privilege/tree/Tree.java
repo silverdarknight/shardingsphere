@@ -23,31 +23,29 @@ import org.apache.shardingsphere.proxy.backend.privilege.common.PrivilegeExcepti
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
-public final class PrivilegeTree implements PrivilegeTreeWrapper, Serializable {
+public class Tree implements PrivilegeTreeWrapper, Serializable {
 
-    private static final long serialVersionUID = -9220671482019753933L;
+    private static final long serialVersionUID = -9025534510942972272L;
 
-    private final PrivilegeRootNode root = new PrivilegeRootNode("root");
+    private final Node root = new Node("root");
 
     @Override
     public Boolean checkPath(final String dbName, final String tableName) {
         if (root.hasStar()) {
             return true;
         }
-        if (root.containsChild(dbName)) {
-            PrivilegeDBNode dbNode = (PrivilegeDBNode) root.getChild(dbName);
+        try {
+            Node dbNode = root.getChild(dbName);
             if (dbNode.hasStar()) {
                 return true;
-            }
-            if (dbNode.containsChild(tableName)) {
-                PrivilegeTableNode tableNode = (PrivilegeTableNode) dbNode.getChild(tableName);
-                return tableNode.hasStar();
             } else {
-                return false;
+                Node tableNode = dbNode.getChild(tableName);
+                return tableNode.hasStar();
             }
-        } else {
+        } catch (NullPointerException ex) {
             return false;
         }
     }
@@ -57,18 +55,19 @@ public final class PrivilegeTree implements PrivilegeTreeWrapper, Serializable {
         if (root.hasStar()) {
             return true;
         }
-        if (root.containsChild(dbName)) {
-            PrivilegeDBNode dbNode = (PrivilegeDBNode) root.getChild(dbName);
+        try {
+            Node dbNode = root.getChild(dbName);
             if (dbNode.hasStar()) {
                 return true;
             }
-            if (dbNode.containsChild(tableName)) {
-                PrivilegeTableNode tableNode = (PrivilegeTableNode) dbNode.getChild(tableName);
-                return tableNode.hasStar() || tableNode.containsChild(colName);
+            Node tableNode = dbNode.getChild(tableName);
+            if (tableNode.hasStar()) {
+                return true;
             } else {
-                return false;
+                Node columnNode = tableNode.getChild(colName);
+                return columnNode.hasStar();
             }
-        } else {
+        } catch (NullPointerException ex) {
             return false;
         }
     }
@@ -77,7 +76,7 @@ public final class PrivilegeTree implements PrivilegeTreeWrapper, Serializable {
     public void grantPath(final String dbName, final String tableName) {
         Boolean dbSuccess = root.addChild(dbName);
         if (!"*".equals(dbName.trim())) {
-            PrivilegeDBNode dbNode = (PrivilegeDBNode) root.getChild(dbName);
+            Node dbNode = root.getChild(dbName);
             Boolean tableSucc = dbNode.addChild(tableName);
             if (!tableSucc && ("*".equals(tableName) || dbNode.getChild(tableName).hasStar())) {
                 throw PrivilegeExceptions.alreadyHasPrivilege();
@@ -96,13 +95,13 @@ public final class PrivilegeTree implements PrivilegeTreeWrapper, Serializable {
             throw PrivilegeExceptions.alreadyHasPrivilege();
         }
         if (!"*".equals(dbName.trim())) {
-            PrivilegeDBNode dbNode = (PrivilegeDBNode) root.getChild(dbName);
+            Node dbNode = root.getChild(dbName);
             Boolean tableSuccess = dbNode.addChild(tableName);
             if ("*".equals(tableName.trim()) && !tableSuccess) {
                 throw PrivilegeExceptions.alreadyHasPrivilege();
             }
             if (!"*".equals(tableName.trim())) {
-                PrivilegeTableNode tableNode = (PrivilegeTableNode) dbNode.getChild(tableName);
+                Node tableNode = dbNode.getChild(tableName);
                 grantColNodes(tableNode, colNames);
             }
         }
@@ -115,13 +114,13 @@ public final class PrivilegeTree implements PrivilegeTreeWrapper, Serializable {
             throw PrivilegeExceptions.alreadyHasPrivilege();
         }
         if (!"*".equals(dbName.trim())) {
-            PrivilegeDBNode dbNode = (PrivilegeDBNode) root.getChild(dbName);
+            Node dbNode = root.getChild(dbName);
             Boolean tableSuccess = dbNode.addChild(tableName);
             if ("*".equals(tableName.trim()) && !tableSuccess) {
                 throw PrivilegeExceptions.alreadyHasPrivilege();
             }
-            if ((!"*".equals(tableName.trim())) && (!(dbNode.getChild(tableName)).addChild(colNames))) {
-                throw PrivilegeExceptions.alreadyHasPrivilege();
+            if (!"*".equals(tableName.trim())) {
+                grantColNode(dbNode.getChild(tableName), colNames);
             }
         }
     }
@@ -136,9 +135,9 @@ public final class PrivilegeTree implements PrivilegeTreeWrapper, Serializable {
                 return;
             }
         }
-        if (root.containsNode(dbName)) {
-            PrivilegeDBNode dbNode = (PrivilegeDBNode) root.getChild(dbName);
-            if (dbNode.containsNode(tableName) && dbNode.removeChild(tableName)) {
+        if (root.containsChild(dbName)) {
+            Node dbNode = root.getChild(dbName);
+            if (dbNode.containsChild(tableName) && dbNode.removeChild(tableName)) {
                 dbNode.clearEmptyPaths();
                 root.clearEmptyPaths();
             } else {
@@ -159,10 +158,10 @@ public final class PrivilegeTree implements PrivilegeTreeWrapper, Serializable {
                 return;
             }
         }
-        if (root.containsNode(dbName)) {
-            PrivilegeDBNode dbNode = (PrivilegeDBNode) root.getChild(dbName);
-            if (dbNode.containsNode(tableName)) {
-                PrivilegeTableNode tableNode = (PrivilegeTableNode) dbNode.getChild(tableName);
+        if (root.containsChild(dbName)) {
+            Node dbNode = root.getChild(dbName);
+            if (dbNode.containsChild(tableName)) {
+                Node tableNode = dbNode.getChild(tableName);
                 removeColNodes(dbNode, tableNode, colNames);
             } else {
                 throw PrivilegeExceptions.noSuchGrantDefined();
@@ -182,10 +181,10 @@ public final class PrivilegeTree implements PrivilegeTreeWrapper, Serializable {
                 return;
             }
         }
-        if (root.containsNode(dbName)) {
-            PrivilegeDBNode dbNode = (PrivilegeDBNode) root.getChild(dbName);
-            if (dbNode.containsNode(tableName)) {
-                PrivilegeTableNode tableNode = (PrivilegeTableNode) dbNode.getChild(tableName);
+        if (root.containsChild(dbName)) {
+            Node dbNode = root.getChild(dbName);
+            if (dbNode.containsChild(tableName)) {
+                Node tableNode = dbNode.getChild(tableName);
                 removeColNode(dbNode, tableNode, colNames);
             } else {
                 throw PrivilegeExceptions.noSuchGrantDefined();
@@ -195,26 +194,32 @@ public final class PrivilegeTree implements PrivilegeTreeWrapper, Serializable {
         }
     }
 
-    private void removeColNode(final PrivilegeDBNode dbNode,
-                                 final PrivilegeTableNode tableNode,
-                                 final String colNames) {
+    private void removeColNode(final Node dbNode,
+                               final Node tableNode,
+                               final String colNames) {
         if (!tableNode.removeChild(colNames)) {
             throw PrivilegeExceptions.noSuchGrantDefined();
         } else {
+            if ("*".equals(colNames)) {
+                tableNode.getOffspring().clear();
+            }
             tableNode.clearEmptyPaths();
             dbNode.clearEmptyPaths();
             root.clearEmptyPaths();
         }
     }
 
-    private void removeColNodes(final PrivilegeDBNode dbNode,
-                               final PrivilegeTableNode tableNode,
-                               final List<String> colNames) {
+    private void removeColNodes(final Node dbNode,
+                                final Node tableNode,
+                                final List<String> colNames) {
         Boolean removeSucc = false;
         Iterator<String> iterator = colNames.iterator();
         while (iterator.hasNext()) {
             String col = iterator.next();
             removeSucc = tableNode.removeChild(col) || removeSucc;
+            if ("*".equals(col)) {
+                tableNode.getOffspring().clear();
+            }
         }
         if (!removeSucc) {
             throw PrivilegeExceptions.noSuchGrantDefined();
@@ -225,15 +230,48 @@ public final class PrivilegeTree implements PrivilegeTreeWrapper, Serializable {
         }
     }
 
-    private void grantColNodes(final PrivilegeTableNode tableNode,
+    private void grantColNodes(final Node tableNode,
                                final List<String> colNames) {
         Boolean needUpdate = false;
         Iterator<String> iterator = colNames.iterator();
         while (iterator.hasNext()) {
-            needUpdate = tableNode.addChild(iterator.next()) || needUpdate;
+            String curCol = iterator.next();
+            needUpdate = tableNode.addChild(curCol) || needUpdate;
+            if (!"*".equals(curCol)) {
+                tableNode.getChild(curCol).setStar();
+            }
         }
         if (!needUpdate) {
             throw PrivilegeExceptions.alreadyHasPrivilege();
         }
+    }
+
+    private void grantColNode(final Node tableNode,
+                               final String colName) {
+        Boolean needUpdate = false;
+        needUpdate = tableNode.addChild(colName) || needUpdate;
+        if (!"*".equals(colName)) {
+            tableNode.getChild(colName).setStar();
+        }
+        if (!needUpdate) {
+            throw PrivilegeExceptions.alreadyHasPrivilege();
+        }
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Tree tree = (Tree) o;
+        return Objects.equals(root, tree.root);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(root);
     }
 }

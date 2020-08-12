@@ -15,32 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.proxy.backend.privilege.tree;
+package org.apache.shardingsphere.proxy.backend.privilege.model;
 
-import org.apache.shardingsphere.proxy.backend.privilege.common.PrivilegeExceptions;
+import org.junit.Test;
 
-import java.io.Serializable;
+import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.instanceOf;
 
-public class PrivilegeColumnNode extends PrivilegeAbstractNode implements Serializable {
+public class RolePrivilegeTest {
 
-    private static final long serialVersionUID = 6547718177957008703L;
-
-    public PrivilegeColumnNode(final String content) {
-        super(content);
-    }
-
-    @Override
-    protected Boolean addChild(final String path) {
-        throw PrivilegeExceptions.cannotActNodeAfterColumn();
-    }
-
-    @Override
-    protected Boolean removeChild(final String path) {
-        throw PrivilegeExceptions.cannotActNodeAfterColumn();
-    }
-
-    @Override
-    protected Boolean containsChild(final String path) {
-        return false;
+    @Test
+    public void assertRolePrivilegeGenerator() {
+        RolePrivilege rolePrivilege = new RolePrivilege("testRole");
+        assertThat(rolePrivilege, instanceOf(RolePrivilege.class));
     }
 }

@@ -22,9 +22,10 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.shardingsphere.proxy.backend.privilege.common.DCLActionType;
 import org.apache.shardingsphere.proxy.backend.privilege.common.PrivilegeExceptions;
-import org.apache.shardingsphere.proxy.backend.privilege.CommonModel.RolePrivilege;
-import org.apache.shardingsphere.proxy.backend.privilege.CommonModel.UserInformation;
-import org.apache.shardingsphere.proxy.backend.privilege.CommonModel.UserPrivilege;
+import org.apache.shardingsphere.proxy.backend.privilege.model.PrivilegeModel;
+import org.apache.shardingsphere.proxy.backend.privilege.model.RolePrivilege;
+import org.apache.shardingsphere.proxy.backend.privilege.model.UserInformation;
+import org.apache.shardingsphere.proxy.backend.privilege.model.UserPrivilege;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
 import org.apache.shardingsphere.proxy.config.yaml.YamlAccessModel;
 import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegeConfiguration;
@@ -343,78 +344,6 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         return model;
     }
 
-    /**
-     * whether contains user.
-     *
-     * @param userName user name
-     * @return contains user
-     */
-    private Boolean containsUser(final String userName) {
-        return userInformationMap.containsKey(userName);
-    }
-
-    /**
-     * whether contains role.
-     *
-     * @param roleName role name
-     * @return contains role
-     */
-    private Boolean containsRole(final String roleName) {
-        return this.getRolesPrivileges().containsKey(roleName.trim());
-    }
-
-    /**
-     * get user information model.
-     *
-     * @param userName user name
-     * @return user information model
-     */
-    private UserInformation getUser(final String userName) {
-        if (!this.getUserInformationMap().containsKey(userName)) {
-            throw PrivilegeExceptions.noSuchUser(userName);
-        }
-        return this.getUserInformationMap().get(userName);
-    }
-
-    private UserPrivilege getUserPrivilege(final String userName) {
-        UserInformation userInformation = this.getUser(userName);
-        UserPrivilege userPrivilege = this.getUsersPrivilege().get(userInformation);
-        if (userPrivilege == null) {
-            throw PrivilegeExceptions.noSuchGrantDefined();
-        } else {
-            return userPrivilege;
-        }
-    }
-
-    private RolePrivilege getRolePrivilege(final String roleName) {
-        if (this.containsRole(roleName.trim())) {
-            return this.getRolesPrivileges().get(roleName.trim());
-        }
-        throw PrivilegeExceptions.noSuchRole(roleName);
-    }
-
-    private UserInformation addUser(final String userName, final String password) {
-        if (this.containsUser(userName)) {
-            throw PrivilegeExceptions.alreadyHaveUser(userName);
-        }
-        UserInformation userInformation = new UserInformation(userName, password);
-        this.getUserInformationMap().put(userName, userInformation);
-        return userInformation;
-    }
-
-    private UserPrivilege addUserPrivilege(final UserInformation userInformation, final UserPrivilege userPrivilege) {
-        this.getUsersPrivilege().put(userInformation.getUserName(), userPrivilege);
-        return userPrivilege;
-    }
-
-    private RolePrivilege addRole(final RolePrivilege rolePrivilege) {
-        if (!this.getRolesPrivileges().containsKey(rolePrivilege.getRoleName())) {
-            this.getRolesPrivileges().put(rolePrivilege.getRoleName(), rolePrivilege);
-            return rolePrivilege;
-        }
-        throw PrivilegeExceptions.alreadyHaveRole(rolePrivilege.getRoleName());
-    }
-
     @Override
     public void createUser(final String byUserName, final String userName, final String password) {
         if (checkHavePermission(byUserName, DCLActionType.CREATE)) {
@@ -596,7 +525,9 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
                           final String information) {
         if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
             createUserPrivilegeIfNotExist(userName);
-            getUsersPrivilege().get(userName).grant(privilegeType, information);
+            String db = PrivilegeModel.splitInformation(information)[0];
+            String table = PrivilegeModel.splitInformation(information)[1];
+            getUsersPrivilege().get(userName).grant(privilegeType, db, table);
         } else {
             throw PrivilegeExceptions.notHaveCurrentPermission();
         }
@@ -645,7 +576,9 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
                           final String privilegeType,
                           final String information) {
         if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
-            getRolesPrivileges().get(roleName).grant(privilegeType, information);
+            String db = PrivilegeModel.splitInformation(information)[0];
+            String table = PrivilegeModel.splitInformation(information)[1];
+            getRolesPrivileges().get(roleName).grant(privilegeType, db, table);
         } else {
             throw PrivilegeExceptions.notHaveCurrentPermission();
         }
@@ -684,7 +617,9 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
                            final String privilegeType,
                            final String information) {
         if (checkHavePermission(byUserName, DCLActionType.REVOKE)) {
-            getUsersPrivilege().get(userName).revoke(privilegeType, information);
+            String db = PrivilegeModel.splitInformation(information)[0];
+            String table = PrivilegeModel.splitInformation(information)[1];
+            getUsersPrivilege().get(userName).revoke(privilegeType, db, table);
         } else {
             throw PrivilegeExceptions.notHaveCurrentPermission();
         }
@@ -732,47 +667,12 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
                            final String privilegeType,
                            final String information) {
         if (checkHavePermission(byUserName, DCLActionType.REVOKE)) {
-            getRolePrivilege(roleName).revoke(privilegeType, information);
+            String db = PrivilegeModel.splitInformation(information)[0];
+            String table = PrivilegeModel.splitInformation(information)[1];
+            getRolePrivilege(roleName).revoke(privilegeType, db, table);
         } else {
             throw PrivilegeExceptions.notHaveCurrentPermission();
         }
-    }
-
-    private Boolean checkHavePermission(final String byUser, final DCLActionType actionType) {
-        if (getInvalidUserGroup().contains(byUser)) {
-            return false;
-        }
-        return true;
-    }
-
-    private void createUserPrivilegeIfNotExist(final String userName) {
-        if (!getUsersPrivilege().containsKey(userName)) {
-            if (!getUserInformationMap().containsKey(userName)) {
-                throw PrivilegeExceptions.noSuchUser(userName);
-            } else {
-                getUsersPrivilege().put(userName, new UserPrivilege());
-            }
-        }
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        AccessModel that = (AccessModel) o;
-        return Objects.equals(userInformationMap, that.userInformationMap)
-                && Objects.equals(usersPrivilege, that.usersPrivilege)
-                && Objects.equals(invalidUserGroup, that.invalidUserGroup)
-                && Objects.equals(rolesPrivileges, that.rolesPrivileges);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(userInformationMap, usersPrivilege, invalidUserGroup, rolesPrivileges);
     }
 
     /**
@@ -782,7 +682,6 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
      * @return if action is check return check return
      */
     public Boolean doAction(final PrivilegeAction action) {
-        String byUser = action.getByUser();
         if (DCLActionType.CREATE == action.getActionType()) {
             if (action.getIsUser()) {
                 createUserAction(action);
@@ -810,7 +709,6 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
                 grantRoleAction(action);
             }
         } else if (action.getActionType() == DCLActionType.REVOKE) {
-            String name = action.getName();
             if (action.getRoleName() != null) {
                 revokeUserRoleAction(action);
             } else if (action.getIsUser()) {
@@ -1041,5 +939,86 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
                 rolePrivilegeWriteLock.unlock();
             }
         }
+    }
+
+    private Boolean checkHavePermission(final String byUser, final DCLActionType actionType) {
+        if (getInvalidUserGroup().contains(byUser)) {
+            return false;
+        }
+        return true;
+    }
+
+    private void createUserPrivilegeIfNotExist(final String userName) {
+        if (!getUsersPrivilege().containsKey(userName)) {
+            if (!getUserInformationMap().containsKey(userName)) {
+                throw PrivilegeExceptions.noSuchUser(userName);
+            } else {
+                getUsersPrivilege().put(userName, new UserPrivilege());
+            }
+        }
+    }
+
+    private Boolean containsUser(final String userName) {
+        return userInformationMap.containsKey(userName);
+    }
+
+    private Boolean containsRole(final String roleName) {
+        return this.getRolesPrivileges().containsKey(roleName.trim());
+    }
+
+    private UserInformation getUser(final String userName) {
+        if (!this.getUserInformationMap().containsKey(userName)) {
+            throw PrivilegeExceptions.noSuchUser(userName);
+        }
+        return this.getUserInformationMap().get(userName);
+    }
+
+    private RolePrivilege getRolePrivilege(final String roleName) {
+        if (this.containsRole(roleName.trim())) {
+            return this.getRolesPrivileges().get(roleName.trim());
+        }
+        throw PrivilegeExceptions.noSuchRole(roleName);
+    }
+
+    private UserInformation addUser(final String userName, final String password) {
+        if (this.containsUser(userName)) {
+            throw PrivilegeExceptions.alreadyHaveUser(userName);
+        }
+        UserInformation userInformation = new UserInformation(userName, password);
+        this.getUserInformationMap().put(userName, userInformation);
+        return userInformation;
+    }
+
+    private UserPrivilege addUserPrivilege(final UserInformation userInformation, final UserPrivilege userPrivilege) {
+        this.getUsersPrivilege().put(userInformation.getUserName(), userPrivilege);
+        return userPrivilege;
+    }
+
+    private RolePrivilege addRole(final RolePrivilege rolePrivilege) {
+        if (!this.getRolesPrivileges().containsKey(rolePrivilege.getRoleName())) {
+            this.getRolesPrivileges().put(rolePrivilege.getRoleName(), rolePrivilege);
+            return rolePrivilege;
+        }
+        throw PrivilegeExceptions.alreadyHaveRole(rolePrivilege.getRoleName());
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        AccessModel that = (AccessModel) o;
+        return Objects.equals(userInformationMap, that.userInformationMap)
+                && Objects.equals(usersPrivilege, that.usersPrivilege)
+                && Objects.equals(invalidUserGroup, that.invalidUserGroup)
+                && Objects.equals(rolesPrivileges, that.rolesPrivileges);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(userInformationMap, usersPrivilege, invalidUserGroup, rolesPrivileges);
     }
 }

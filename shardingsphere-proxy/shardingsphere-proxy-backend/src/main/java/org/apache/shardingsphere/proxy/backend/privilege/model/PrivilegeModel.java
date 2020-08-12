@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.proxy.backend.privilege.CommonModel;
+package org.apache.shardingsphere.proxy.backend.privilege.model;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
 import org.apache.shardingsphere.proxy.backend.privilege.common.PrivilegeActionType;
-import org.apache.shardingsphere.proxy.backend.privilege.tree.PrivilegeTree;
+import org.apache.shardingsphere.proxy.backend.privilege.tree.Tree;
 import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegeConfiguration;
 import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegePath;
 
@@ -35,11 +35,11 @@ import java.util.Objects;
 
 @Getter
 @Setter
-public abstract class PrivilegeModel implements Serializable {
+public class PrivilegeModel implements Serializable {
 
     private static final long serialVersionUID = -7687165906415647698L;
 
-    private Map<PrivilegeActionType, PrivilegeTree> privilegePaths = new HashMap<>(PrivilegeActionType.values().length);
+    private Map<PrivilegeActionType, Tree> privilegePaths = new HashMap<>(PrivilegeActionType.values().length);
 
     public PrivilegeModel() {
         EnumSet<PrivilegeActionType> actionTypes = EnumSet.allOf(PrivilegeActionType.class);
@@ -47,7 +47,7 @@ public abstract class PrivilegeModel implements Serializable {
         while (iterator.hasNext()) {
             PrivilegeActionType curActionType = iterator.next();
             if (PrivilegeActionType.canGenerateModel(curActionType)) {
-                getPrivilegePaths().put(curActionType, new PrivilegeTree());
+                getPrivilegePaths().put(curActionType, new Tree());
             }
         }
     }
@@ -64,11 +64,13 @@ public abstract class PrivilegeModel implements Serializable {
             YamlPrivilegePath yamlPrivilegePath = iterator.next();
             if (yamlPrivilegePath.getCols() != null && yamlPrivilegePath.getCols().size() != 0) {
                 this.grant("insert",
-                        yamlPrivilegePath.getInformation(),
+                        yamlPrivilegePath.getInformation().split("\\.")[0],
+                        yamlPrivilegePath.getInformation().split("\\.")[1],
                         yamlPrivilegePath.getCols());
             } else {
                 this.grant("insert",
-                        yamlPrivilegePath.getInformation());
+                        yamlPrivilegePath.getInformation().split("\\.")[0],
+                        yamlPrivilegePath.getInformation().split("\\.")[1]);
             }
         }
         // delete
@@ -77,11 +79,13 @@ public abstract class PrivilegeModel implements Serializable {
             YamlPrivilegePath yamlPrivilegePath = iterator.next();
             if (yamlPrivilegePath.getCols() != null && yamlPrivilegePath.getCols().size() != 0) {
                 this.grant("delete",
-                        yamlPrivilegePath.getInformation(),
+                        yamlPrivilegePath.getInformation().split("\\.")[0],
+                        yamlPrivilegePath.getInformation().split("\\.")[1],
                         yamlPrivilegePath.getCols());
             } else {
                 this.grant("delete",
-                        yamlPrivilegePath.getInformation());
+                        yamlPrivilegePath.getInformation().split("\\.")[0],
+                        yamlPrivilegePath.getInformation().split("\\.")[1]);
             }
         }
         // select
@@ -90,11 +94,13 @@ public abstract class PrivilegeModel implements Serializable {
             YamlPrivilegePath yamlPrivilegePath = iterator.next();
             if (yamlPrivilegePath.getCols() != null && yamlPrivilegePath.getCols().size() != 0) {
                 this.grant("select",
-                        yamlPrivilegePath.getInformation(),
+                        yamlPrivilegePath.getInformation().split("\\.")[0],
+                        yamlPrivilegePath.getInformation().split("\\.")[1],
                         yamlPrivilegePath.getCols());
             } else {
                 this.grant("select",
-                        yamlPrivilegePath.getInformation());
+                        yamlPrivilegePath.getInformation().split("\\.")[0],
+                        yamlPrivilegePath.getInformation().split("\\.")[1]);
             }
         }
         // update
@@ -103,16 +109,18 @@ public abstract class PrivilegeModel implements Serializable {
             YamlPrivilegePath yamlPrivilegePath = iterator.next();
             if (yamlPrivilegePath.getCols() != null && yamlPrivilegePath.getCols().size() != 0) {
                 this.grant("update",
-                        yamlPrivilegePath.getInformation(),
+                        yamlPrivilegePath.getInformation().split("\\.")[0],
+                        yamlPrivilegePath.getInformation().split("\\.")[1],
                         yamlPrivilegePath.getCols());
             } else {
                 this.grant("update",
-                        yamlPrivilegePath.getInformation());
+                        yamlPrivilegePath.getInformation().split("\\.")[0],
+                        yamlPrivilegePath.getInformation().split("\\.")[1]);
             }
         }
     }
 
-    protected PrivilegeTree chosePrivilegeType(final String privilegeType) {
+    protected Tree chosePrivilegeType(final String privilegeType) {
         PrivilegeActionType actionType = PrivilegeActionType.checkActionType(privilegeType);
         if (actionType == PrivilegeActionType.UNKNOWN_TYPE) {
             throw new ShardingSphereException("Can not match privilege type");
@@ -121,79 +129,60 @@ public abstract class PrivilegeModel implements Serializable {
         }
     }
 
+    /**
+     * grant columns privilege.
+     *
+     * @param privilegeType privilege type
+     * @param dbName db name
+     * @param tableName table name
+     * @param cols columns
+     */
     public void grant(final String privilegeType,
                          final String dbName,
                          final String tableName,
                          final List<String> cols) {
-        PrivilegeTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
+        Tree targetPrivilegeTree = chosePrivilegeType(privilegeType);
         targetPrivilegeTree.grantPath(dbName, tableName, cols);
     }
 
+    /**
+     * grant table privileges.
+     *
+     * @param privilegeType privilege type
+     * @param dbName db name
+     * @param tableName table name
+     */
     public void grant(final String privilegeType, final String dbName, final String tableName) {
-        PrivilegeTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
+        Tree targetPrivilegeTree = chosePrivilegeType(privilegeType);
         targetPrivilegeTree.grantPath(dbName, tableName);
     }
 
-    public void grant(final String privilegeType,
-                         final String information) {
-        String[] splitInfo = splitInformation(information);
-        if (splitInfo.length == 1) {
-            throw new ShardingSphereException("illegal input target database and table");
-        } else if (splitInfo.length == 2) {
-            grant(privilegeType, splitInfo[0], splitInfo[1]);
-        } else {
-            throw new ShardingSphereException("illegal input target database and table");
-        }
-    }
-
-    public void grant(final String privilegeType,
-                         final String information,
-                         final List<String> cols) {
-        String[] splitInfo = splitInformation(information);
-        if (splitInfo.length == 1) {
-            throw new ShardingSphereException("illegal input target database and table");
-        } else if (splitInfo.length == 2) {
-            grant(privilegeType, splitInfo[0], splitInfo[1], cols);
-        } else {
-            throw new ShardingSphereException("illegal input target database and table");
-        }
-    }
-
+    /**
+     * revoke columns privilege.
+     *
+     * @param privilegeType privilege type
+     * @param dbName db name
+     * @param tableName table name
+     * @param cols columns
+     */
     public void revoke(final String privilegeType,
                           final String dbName,
                           final String tableName,
                           final List<String> cols) {
-        PrivilegeTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
+        Tree targetPrivilegeTree = chosePrivilegeType(privilegeType);
         targetPrivilegeTree.revokePath(dbName, tableName, cols);
     }
 
+    /**
+     * revoke table privilege.
+     *
+     * @param privilegeType privilege type
+     * @param dbName db name
+     * @param tableName table name
+     */
     public void revoke(final String privilegeType, final String dbName, final String tableName) {
-        PrivilegeTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
+        Tree targetPrivilegeTree = chosePrivilegeType(privilegeType);
         targetPrivilegeTree.revokePath(dbName, tableName);
-    }
-
-    public void revoke(final String privilegeType, final String information) {
-        String[] splitInfo = splitInformation(information);
-        if (splitInfo.length == 1) {
-            revoke(privilegeType, splitInfo[0]);
-        } else if (splitInfo.length == 2) {
-            revoke(privilegeType, splitInfo[0], splitInfo[1]);
-        } else {
-            throw new ShardingSphereException("illegal input target database and table");
-        }
-    }
-
-    public void revoke(final String privilegeType,
-                          final String information,
-                          final List<String> cols) {
-        String[] splitInfo = splitInformation(information);
-        if (splitInfo.length == 1) {
-            throw new ShardingSphereException("illegal input target database and table");
-        } else if (splitInfo.length == 2) {
-            revoke(privilegeType, splitInfo[0], splitInfo[1], cols);
-        } else {
-            throw new ShardingSphereException("illegal input target database and table");
-        }
     }
 
     /**
@@ -209,7 +198,7 @@ public abstract class PrivilegeModel implements Serializable {
                                   final String dbName,
                                   final String tableName,
                                   final String column) {
-        PrivilegeTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
+        Tree targetPrivilegeTree = chosePrivilegeType(privilegeType);
         return targetPrivilegeTree.checkPath(dbName, tableName, column);
     }
 
@@ -222,26 +211,8 @@ public abstract class PrivilegeModel implements Serializable {
      * @return have privilege
      */
     public boolean checkPrivilege(final String privilegeType, final String dbName, final String tableName) {
-        PrivilegeTree targetPrivilegeTree = chosePrivilegeType(privilegeType);
+        Tree targetPrivilegeTree = chosePrivilegeType(privilegeType);
         return targetPrivilegeTree.checkPath(dbName, tableName);
-    }
-
-    /**
-     * check privilege.
-     *
-     * @param privilegeType type
-     * @param information db and table
-     * @return have privilege
-     */
-    public boolean checkPrivilege(final String privilegeType, final String information) {
-        String[] splitInfo = splitInformation(information);
-        if (splitInfo.length == 1) {
-            throw new ShardingSphereException("illegal input target database and table");
-        } else if (splitInfo.length == 2) {
-            return checkPrivilege(privilegeType, splitInfo[0], splitInfo[1]);
-        } else {
-            return checkPrivilege(privilegeType, splitInfo[0], splitInfo[1], splitInfo[2]);
-        }
     }
 
     @Override
@@ -261,7 +232,13 @@ public abstract class PrivilegeModel implements Serializable {
         return Objects.hash(privilegePaths);
     }
 
-    private String[] splitInformation(final String information) {
+    /**
+     * split tradition db.table.
+     *
+     * @param information db.table
+     * @return new int[]{db, table}
+     */
+    public static String[] splitInformation(final String information) {
         String[] dbAndTable = information.split("\\.");
         return dbAndTable;
     }
