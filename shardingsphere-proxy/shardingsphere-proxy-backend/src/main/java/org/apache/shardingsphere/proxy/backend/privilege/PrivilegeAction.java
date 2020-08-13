@@ -52,17 +52,6 @@ public final class PrivilegeAction {
     private Boolean privilegePathValid;
 
     /**
-     * split database and table.
-     *
-     * @param information db and table
-     * @return array db and table
-     */
-    public String[] splitInformationByDot(final String information) {
-        String[] dbAndTable = information.split("\\.");
-        return dbAndTable;
-    }
-
-    /**
      * construct add user action.
      *
      * @param byUser by user

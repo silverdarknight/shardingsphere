@@ -32,6 +32,7 @@ public final class RolePrivilege extends PrivilegeModel implements Serializable 
     private String roleName;
 
     public RolePrivilege(final String roleName) {
+        super();
         this.setRoleName(roleName);
     }
 

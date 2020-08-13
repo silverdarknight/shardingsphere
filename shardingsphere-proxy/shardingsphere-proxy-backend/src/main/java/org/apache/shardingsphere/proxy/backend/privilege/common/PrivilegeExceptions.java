@@ -114,4 +114,13 @@ public final class PrivilegeExceptions {
     public static ShardingSphereException actionTypeErrorException() {
         return new ShardingSphereException("DCL action type error.");
     }
+
+    /**
+     * Can not match privilege type.
+     *
+     * @return exception
+     */
+    public static ShardingSphereException noSuchPrivilegeType() {
+        return new ShardingSphereException("Can not match privilege type");
+    }
 }

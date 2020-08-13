@@ -17,283 +17,89 @@
 
 package org.apache.shardingsphere.proxy.backend.privilege;
 
-import java.util.List;
+import org.apache.shardingsphere.proxy.backend.privilege.model.RolePrivilege;
+import org.apache.shardingsphere.proxy.backend.privilege.model.UserInformation;
+import org.apache.shardingsphere.proxy.backend.privilege.model.UserPrivilege;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Map;
 
 public interface AccessExecutorWrapper {
 
     /**
-     * create user.
+     * do action for model.
      *
-     * @param byUserName by user
-     * @param userName create user name
-     * @param password create user password
+     * @param action action
+     * @return if action is check return check return
      */
-    void createUser(String byUserName, String userName, String password);
+    Boolean doAction(PrivilegeAction action);
 
     /**
-     * create role.
+     * update user information.
      *
-     * @param byUserName by user
-     * @param roleName create role name
+     * @param userInformationMap user information
      */
-    void createRole(String byUserName, String roleName);
+    void updateInformation(Map<String, UserInformation> userInformationMap);
 
     /**
-     * remove user.
+     * update user privilege.
      *
-     * @param byUserName by user
-     * @param userName remove user name
+     * @param userPrivilegeMap user privilege
      */
-    void removeUser(String byUserName, String userName);
+    void updateUsersPrivilege(Map<String, UserPrivilege> userPrivilegeMap);
 
     /**
-     * remove role.
+     * update invalid user.
      *
-     * @param byUserName by user
-     * @param roleName remove role name
+     * @param invalidUserGroup invalid user group
      */
-    void removeRole(String byUserName, String roleName);
+    void updateInvalidGroup(Collection<String> invalidUserGroup);
 
     /**
-     * disable user.
+     * update role privilege.
      *
-     * @param byUserName by user
-     * @param userName disable user name
+     * @param rolePrivilegeMap role privilege
      */
-    void disableUser(String byUserName, String userName);
+    void updateRolePrivileges(Map<String, RolePrivilege> rolePrivilegeMap);
 
     /**
-     * check privilege.
+     * access model to byte.
      *
-     * @param byUserName by user
-     * @param userName check user
-     * @param privilegeType privilege type
-     * @param database target database
-     * @param table target table
-     * @param column target column list
-     * @return have this privilege
+     * @return bytes
+     * @throws IOException to byte error
      */
-    Boolean checkUserPrivilege(String byUserName,
-                                      String userName,
-                                      String privilegeType,
-                                      String database,
-                                      String table,
-                                      List<String> column);
+    byte[] toBytes() throws IOException;
 
     /**
-     * check privilege.
+     * information model to byte.
      *
-     * @param byUserName by user
-     * @param userName check user
-     * @param privilegeType privilege type
-     * @param database target database
-     * @param table target table
-     * @param column target column
-     * @return have this privilege
+     * @return bytes
+     * @throws IOException to byte error
      */
-    Boolean checkUserPrivilege(String byUserName,
-                                      String userName,
-                                      String privilegeType,
-                                      String database,
-                                      String table,
-                                      String column);
+    byte[] informationToBytes() throws IOException;
 
     /**
-     * check privilege.
+     * invalidGroup model to byte.
      *
-     * @param byUserName by user
-     * @param userName check user
-     * @param privilegeType privilege type
-     * @param database target database
-     * @param table target table
-     * @return have this privilege
+     * @return bytes
+     * @throws IOException to byte error
      */
-    Boolean checkUserPrivilege(String byUserName,
-                                      String userName,
-                                      String privilegeType,
-                                      String database,
-                                      String table);
+    byte[] invalidGroupToBytes() throws IOException;
 
     /**
-     * grant privilege.
+     * rolePrivileges model to byte.
      *
-     * @param byUserName by user
-     * @param userName grant user
-     * @param privilegeType privilege type
-     * @param database target database
-     * @param table target table
-     * @param column target columns
+     * @return bytes
+     * @throws IOException to byte error
      */
-    void grantUser(String byUserName,
-                          String userName,
-                          String privilegeType,
-                          String database,
-                          String table,
-                          List<String> column);
+    byte[] rolePrivilegesToBytes() throws IOException;
 
     /**
-     * grant privilege.
+     * usersPrivilege model to byte.
      *
-     * @param byUserName by user
-     * @param userName grant user
-     * @param privilegeType privilege type
-     * @param database target database
-     * @param table target table
+     * @return bytes
+     * @throws IOException to byte error
      */
-    void grantUser(String byUserName,
-                          String userName,
-                          String privilegeType,
-                          String database,
-                          String table);
-
-    /**
-     * grant privilege.
-     *
-     * @param byUserName by user
-     * @param userName grant user
-     * @param privilegeType privilege type
-     * @param information database+table
-     */
-    void grantUser(String byUserName, String userName, String privilegeType, String information);
-
-    /**
-     * grant role.
-     *
-     * @param byUserName by user
-     * @param userName grant user
-     * @param roleName grant role
-     */
-    void grantUser(String byUserName, String userName, String roleName);
-
-    /**
-     * grant role.
-     *
-     * @param byUserName by user
-     * @param roleName grant role
-     * @param privilegeType privilege type
-     * @param database target database
-     * @param table target table
-     * @param column target columns
-     */
-    void grantRole(String byUserName,
-                          String roleName,
-                          String privilegeType,
-                          String database,
-                          String table,
-                          List<String> column);
-
-    /**
-     * grant privilege.
-     *
-     * @param byUserName by user
-     * @param roleName grant role
-     * @param privilegeType privilege type
-     * @param database target database
-     * @param table target table
-     */
-    void grantRole(String byUserName,
-                          String roleName,
-                          String privilegeType,
-                          String database,
-                          String table);
-
-    /**
-     * grant role.
-     *
-     * @param byUserName by user
-     * @param roleName grant role
-     * @param privilegeType privilege type
-     * @param information database+table
-     */
-    void grantRole(String byUserName,
-                          String roleName,
-                          String privilegeType,
-                          String information);
-
-    /**
-     * revoke user.
-     *
-     * @param byUserName by user
-     * @param userName revoke user
-     * @param privilegeType privilege type
-     * @param database target database
-     * @param table target table
-     * @param column target columns
-     */
-    void revokeUser(String byUserName,
-                           String userName,
-                           String privilegeType,
-                           String database,
-                           String table,
-                           List<String> column);
-
-    /**
-     * revoke user.
-     *
-     * @param byUserName by user
-     * @param userName revoke user
-     * @param privilegeType privilege type
-     * @param database target database
-     * @param table target table
-     */
-    void revokeUser(String byUserName,
-                           String userName,
-                           String privilegeType,
-                           String database,
-                           String table);
-
-    /**
-     * revoke user.
-     *
-     * @param byUserName by user
-     * @param userName revoke user
-     * @param privilegeType privilege type
-     * @param information database+table
-     */
-    void revokeUser(String byUserName,
-                           String userName,
-                           String privilegeType,
-                           String information);
-
-    /**
-     * revoke role.
-     *
-     * @param byUserName by user
-     * @param userName revoke user
-     * @param roleName role
-     */
-    void revokeUser(String byUserName, String userName, String roleName);
-
-    /**
-     * revoke role.
-     *
-     * @param byUserName by user
-     * @param roleName revoke role
-     * @param privilegeType privilege type
-     * @param database target database
-     * @param table target table
-     * @param column target columns
-     */
-    void revokeRole(String byUserName, String roleName, String privilegeType, String database, String table, List<String> column);
-
-    /**
-     * revoke role.
-     *
-     * @param byUserName by user
-     * @param roleName revoke role
-     * @param privilegeType privilege type
-     * @param database target database
-     * @param table target table
-     */
-    void revokeRole(String byUserName, String roleName, String privilegeType, String database, String table);
-
-    /**
-     * revoke role.
-     *
-     * @param byUserName by user
-     * @param roleName revoke role
-     * @param privilegeType privilege type
-     * @param information database+table
-     */
-    void revokeRole(String byUserName, String roleName, String privilegeType, String information);
+    byte[] usersPrivilegeToBytes() throws IOException;
 }

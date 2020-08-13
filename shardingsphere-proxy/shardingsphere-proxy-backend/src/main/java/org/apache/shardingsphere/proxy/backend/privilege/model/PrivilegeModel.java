@@ -19,8 +19,8 @@ package org.apache.shardingsphere.proxy.backend.privilege.model;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.shardingsphere.infra.exception.ShardingSphereException;
 import org.apache.shardingsphere.proxy.backend.privilege.common.PrivilegeActionType;
+import org.apache.shardingsphere.proxy.backend.privilege.common.PrivilegeExceptions;
 import org.apache.shardingsphere.proxy.backend.privilege.tree.Tree;
 import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegeConfiguration;
 import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegePath;
@@ -123,7 +123,7 @@ public class PrivilegeModel implements Serializable {
     protected Tree chosePrivilegeType(final String privilegeType) {
         PrivilegeActionType actionType = PrivilegeActionType.checkActionType(privilegeType);
         if (actionType == PrivilegeActionType.UNKNOWN_TYPE) {
-            throw new ShardingSphereException("Can not match privilege type");
+            throw PrivilegeExceptions.noSuchPrivilegeType();
         } else {
             return getPrivilegePaths().get(actionType);
         }

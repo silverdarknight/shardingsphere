@@ -131,140 +131,6 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
     }
 
     /**
-     * update user information.
-     *
-     * @param userInformationMap user information
-     */
-    public void updateInformation(final Map<String, UserInformation> userInformationMap) {
-        try {
-            infoWriteLock.lock();
-            this.setUserInformationMap(userInformationMap);
-        } catch (ShardingSphereException ex) {
-            throw PrivilegeExceptions.updateModelFailed();
-        } finally {
-            infoWriteLock.unlock();
-        }
-    }
-
-    /**
-     * update user privilege.
-     *
-     * @param userPrivilegeMap user privilege
-     */
-    public void updateUsersPrivilege(final Map<String, UserPrivilege> userPrivilegeMap) {
-        try {
-            userPrivilegeWriteLock.lock();
-            this.setUsersPrivilege(userPrivilegeMap);
-        } catch (ShardingSphereException ex) {
-            throw PrivilegeExceptions.updateModelFailed();
-        } finally {
-            userPrivilegeWriteLock.unlock();
-        }
-    }
-
-    /**
-     * update invalid user.
-     *
-     * @param invalidUserGroup invalid user group
-     */
-    public void updateInvalidGroup(final Collection<String> invalidUserGroup) {
-        try {
-            invalidGroupWriteLock.lock();
-            this.setInvalidUserGroup(invalidUserGroup);
-        } catch (ShardingSphereException ex) {
-            throw PrivilegeExceptions.updateModelFailed();
-        } finally {
-            invalidGroupWriteLock.unlock();
-        }
-    }
-
-    /**
-     * update role privilege.
-     *
-     * @param rolePrivilegeMap role privilege
-     */
-    public void updateRolePrivileges(final Map<String, RolePrivilege> rolePrivilegeMap) {
-        try {
-            rolePrivilegeWriteLock.lock();
-            this.setRolesPrivileges(rolePrivilegeMap);
-        } catch (ShardingSphereException ex) {
-            throw PrivilegeExceptions.updateModelFailed();
-        } finally {
-            rolePrivilegeWriteLock.unlock();
-        }
-    }
-
-    /**
-     * access model to byte.
-     *
-     * @return bytes
-     * @throws IOException to byte error
-     */
-    public byte[] toBytes() throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(bos);
-        oos.writeObject(this);
-        oos.flush();
-        return bos.toByteArray();
-    }
-
-    /**
-     * information model to byte.
-     *
-     * @return bytes
-     * @throws IOException to byte error
-     */
-    public byte[] informationToBytes() throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(bos);
-        oos.writeObject(getUserInformationMap());
-        oos.flush();
-        return bos.toByteArray();
-    }
-
-    /**
-     * invalidGroup model to byte.
-     *
-     * @return bytes
-     * @throws IOException to byte error
-     */
-    public byte[] invalidGroupToBytes() throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(bos);
-        oos.writeObject(getInvalidUserGroup());
-        oos.flush();
-        return bos.toByteArray();
-    }
-
-    /**
-     * rolePrivileges model to byte.
-     *
-     * @return bytes
-     * @throws IOException to byte error
-     */
-    public byte[] rolePrivilegesToBytes() throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(bos);
-        oos.writeObject(getRolesPrivileges());
-        oos.flush();
-        return bos.toByteArray();
-    }
-
-    /**
-     * usersPrivilege model to byte.
-     *
-     * @return bytes
-     * @throws IOException to byte error
-     */
-    public byte[] usersPrivilegeToBytes() throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(bos);
-        oos.writeObject(getUsersPrivilege());
-        oos.flush();
-        return bos.toByteArray();
-    }
-
-    /**
      * deserialize access model from bytes.
      *
      * @param serializeData byte data
@@ -345,342 +211,6 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
     }
 
     @Override
-    public void createUser(final String byUserName, final String userName, final String password) {
-        if (checkHavePermission(byUserName, DCLActionType.CREATE)) {
-            UserInformation information = new UserInformation(userName, password);
-            if (!this.getUserInformationMap().containsKey(userName)) {
-                this.getUserInformationMap().put(userName, information);
-            }
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public void createRole(final String byUserName, final String roleName) {
-        if (checkHavePermission(byUserName, DCLActionType.CREATE)) {
-            RolePrivilege information = new RolePrivilege(roleName);
-            if (!this.getRolesPrivileges().containsKey(roleName)) {
-                this.getRolesPrivileges().put(roleName, information);
-            }
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public void removeUser(final String byUserName, final String userName) {
-        if (checkHavePermission(byUserName, DCLActionType.REMOVE)) {
-            getInvalidUserGroup().remove(userName);
-            getUserInformationMap().remove(userName);
-            getUsersPrivilege().remove(userName);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public void removeRole(final String byUserName, final String roleName) {
-        if (checkHavePermission(byUserName, DCLActionType.REMOVE)) {
-            RolePrivilege targetRole = getRolePrivilege(roleName);
-            // users revoke role
-            Iterator<Map.Entry<String, UserPrivilege>> userPrivilegeIterator = getUsersPrivilege().entrySet().iterator();
-            while (userPrivilegeIterator.hasNext()) {
-                Map.Entry<String, UserPrivilege> kv = userPrivilegeIterator.next();
-                try {
-                    kv.getValue().revoke(targetRole.getRoleName());
-                } catch (ShardingSphereException ex) {
-                    //
-                }
-            }
-            // remove role
-            getRolesPrivileges().remove(roleName);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public void disableUser(final String byUserName, final String userName) {
-        if (checkHavePermission(byUserName, DCLActionType.DISABLE)) {
-            getInvalidUserGroup().add(userName);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public Boolean checkUserPrivilege(final String byUserName,
-                                      final String userName,
-                                      final String privilegeType,
-                                      final String database,
-                                      final String table,
-                                      final List<String> column) {
-        if (checkHavePermission(byUserName, DCLActionType.CHECK)) {
-            if (!getUsersPrivilege().containsKey(userName)) {
-                return false;
-            }
-            Iterator<String> iterator = column.iterator();
-            while (iterator.hasNext()) {
-                if (!checkUserPrivilege(byUserName, userName, privilegeType, database, table, iterator.next())) {
-                    return false;
-                }
-            }
-            return true;
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public Boolean checkUserPrivilege(final String byUserName,
-                                      final String userName,
-                                      final String privilegeType,
-                                      final String database,
-                                      final String table,
-                                      final String column) {
-        if (checkHavePermission(byUserName, DCLActionType.CHECK)) {
-            if (!getUsersPrivilege().containsKey(userName)) {
-                return false;
-            }
-            boolean selfCheck = getUsersPrivilege().get(userName).checkPrivilege(privilegeType, database, table, column);
-            if (selfCheck) {
-                return true;
-            } else {
-                List<String> selfRoles = getUsersPrivilege().get(userName).getRolesName();
-                Iterator<String> iterator = selfRoles.iterator();
-                while (iterator.hasNext()) {
-                    String curRole = iterator.next();
-                    RolePrivilege curRoleModel = getRolesPrivileges().get(curRole);
-                    return curRoleModel.checkPrivilege(privilegeType, database, table, column);
-                }
-                return false;
-            }
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public Boolean checkUserPrivilege(final String byUserName,
-                                      final String userName,
-                                      final String privilegeType,
-                                      final String database,
-                                      final String table) {
-        if (checkHavePermission(byUserName, DCLActionType.CHECK)) {
-            if (!getUsersPrivilege().containsKey(userName)) {
-                return false;
-            }
-            boolean selfCheck = getUsersPrivilege().get(userName).checkPrivilege(privilegeType, database, table);
-            if (selfCheck) {
-                return true;
-            } else {
-                List<String> selfRoles = getUsersPrivilege().get(userName).getRolesName();
-                Iterator<String> iterator = selfRoles.iterator();
-                while (iterator.hasNext()) {
-                    String curRole = iterator.next();
-                    RolePrivilege curRoleModel = getRolesPrivileges().get(curRole);
-                    return curRoleModel.checkPrivilege(privilegeType, database, table);
-                }
-                return false;
-            }
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public void grantUser(final String byUserName,
-                          final String userName,
-                          final String privilegeType,
-                          final String database,
-                          final String table,
-                          final List<String> column) {
-        if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
-            createUserPrivilegeIfNotExist(userName);
-            getUsersPrivilege().get(userName).grant(privilegeType, database, table, column);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public void grantUser(final String byUserName,
-                          final String userName,
-                          final String privilegeType,
-                          final String database,
-                          final String table) {
-        if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
-            createUserPrivilegeIfNotExist(userName);
-            getUsersPrivilege().get(userName).grant(privilegeType, database, table);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public void grantUser(final String byUserName,
-                          final String userName,
-                          final String privilegeType,
-                          final String information) {
-        if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
-            createUserPrivilegeIfNotExist(userName);
-            String db = PrivilegeModel.splitInformation(information)[0];
-            String table = PrivilegeModel.splitInformation(information)[1];
-            getUsersPrivilege().get(userName).grant(privilegeType, db, table);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public void grantUser(final String byUserName, final String userName, final String roleName) {
-        if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
-            createUserPrivilegeIfNotExist(userName);
-            getUsersPrivilege().get(userName).grant(roleName);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public void grantRole(final String byUserName,
-                          final String roleName,
-                          final String privilegeType,
-                          final String database,
-                          final String table,
-                          final List<String> column) {
-        if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
-            getRolesPrivileges().get(roleName).grant(privilegeType, database, table, column);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public void grantRole(final String byUserName,
-                          final String roleName,
-                          final String privilegeType,
-                          final String database,
-                          final String table) {
-        if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
-            getRolesPrivileges().get(roleName).grant(privilegeType, database, table);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public void grantRole(final String byUserName,
-                          final String roleName,
-                          final String privilegeType,
-                          final String information) {
-        if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
-            String db = PrivilegeModel.splitInformation(information)[0];
-            String table = PrivilegeModel.splitInformation(information)[1];
-            getRolesPrivileges().get(roleName).grant(privilegeType, db, table);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public void revokeUser(final String byUserName,
-                           final String userName,
-                           final String privilegeType,
-                           final String database,
-                           final String table,
-                           final List<String> column) {
-        if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
-            getUsersPrivilege().get(userName).revoke(privilegeType, database, table, column);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public void revokeUser(final String byUserName,
-                           final String userName,
-                           final String privilegeType,
-                           final String database,
-                           final String table) {
-        if (checkHavePermission(byUserName, DCLActionType.REVOKE)) {
-            getUsersPrivilege().get(userName).revoke(privilegeType, database, table);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public void revokeUser(final String byUserName,
-                           final String userName,
-                           final String privilegeType,
-                           final String information) {
-        if (checkHavePermission(byUserName, DCLActionType.REVOKE)) {
-            String db = PrivilegeModel.splitInformation(information)[0];
-            String table = PrivilegeModel.splitInformation(information)[1];
-            getUsersPrivilege().get(userName).revoke(privilegeType, db, table);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public void revokeUser(final String byUserName, final String userName, final String roleName) {
-        if (checkHavePermission(byUserName, DCLActionType.REVOKE)) {
-            getUsersPrivilege().get(userName).revoke(roleName);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public void revokeRole(final String byUserName,
-                           final String roleName,
-                           final String privilegeType,
-                           final String database,
-                           final String table,
-                           final List<String> column) {
-        if (checkHavePermission(byUserName, DCLActionType.REVOKE)) {
-            getRolePrivilege(roleName).revoke(privilegeType, database, table, column);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public void revokeRole(final String byUserName,
-                           final String roleName,
-                           final String privilegeType,
-                           final String database,
-                           final String table) {
-        if (checkHavePermission(byUserName, DCLActionType.REVOKE)) {
-            getRolePrivilege(roleName).revoke(privilegeType, database, table);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    @Override
-    public void revokeRole(final String byUserName,
-                           final String roleName,
-                           final String privilegeType,
-                           final String information) {
-        if (checkHavePermission(byUserName, DCLActionType.REVOKE)) {
-            String db = PrivilegeModel.splitInformation(information)[0];
-            String table = PrivilegeModel.splitInformation(information)[1];
-            getRolePrivilege(roleName).revoke(privilegeType, db, table);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    /**
-     * do action for model.
-     *
-     * @param action action
-     * @return if action is check return check return
-     */
     public Boolean doAction(final PrivilegeAction action) {
         if (DCLActionType.CREATE == action.getActionType()) {
             if (action.getIsUser()) {
@@ -720,6 +250,408 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
             throw PrivilegeExceptions.actionTypeErrorException();
         }
         return true;
+    }
+
+    @Override
+    public void updateInformation(final Map<String, UserInformation> userInformationMap) {
+        try {
+            infoWriteLock.lock();
+            this.setUserInformationMap(userInformationMap);
+        } catch (ShardingSphereException ex) {
+            throw PrivilegeExceptions.updateModelFailed();
+        } finally {
+            infoWriteLock.unlock();
+        }
+    }
+
+    @Override
+    public void updateUsersPrivilege(final Map<String, UserPrivilege> userPrivilegeMap) {
+        try {
+            userPrivilegeWriteLock.lock();
+            this.setUsersPrivilege(userPrivilegeMap);
+        } catch (ShardingSphereException ex) {
+            throw PrivilegeExceptions.updateModelFailed();
+        } finally {
+            userPrivilegeWriteLock.unlock();
+        }
+    }
+
+    @Override
+    public void updateInvalidGroup(final Collection<String> invalidUserGroup) {
+        try {
+            invalidGroupWriteLock.lock();
+            this.setInvalidUserGroup(invalidUserGroup);
+        } catch (ShardingSphereException ex) {
+            throw PrivilegeExceptions.updateModelFailed();
+        } finally {
+            invalidGroupWriteLock.unlock();
+        }
+    }
+
+    @Override
+    public void updateRolePrivileges(final Map<String, RolePrivilege> rolePrivilegeMap) {
+        try {
+            rolePrivilegeWriteLock.lock();
+            this.setRolesPrivileges(rolePrivilegeMap);
+        } catch (ShardingSphereException ex) {
+            throw PrivilegeExceptions.updateModelFailed();
+        } finally {
+            rolePrivilegeWriteLock.unlock();
+        }
+    }
+
+    @Override
+    public byte[] toBytes() throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(this);
+        oos.flush();
+        return bos.toByteArray();
+    }
+
+    @Override
+    public byte[] informationToBytes() throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(getUserInformationMap());
+        oos.flush();
+        return bos.toByteArray();
+    }
+
+    @Override
+    public byte[] invalidGroupToBytes() throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(getInvalidUserGroup());
+        oos.flush();
+        return bos.toByteArray();
+    }
+
+    @Override
+    public byte[] rolePrivilegesToBytes() throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(getRolesPrivileges());
+        oos.flush();
+        return bos.toByteArray();
+    }
+
+    @Override
+    public byte[] usersPrivilegeToBytes() throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(getUsersPrivilege());
+        oos.flush();
+        return bos.toByteArray();
+    }
+
+    private void createUser(final String byUserName, final String userName, final String password) {
+        if (checkHavePermission(byUserName, DCLActionType.CREATE)) {
+            UserInformation information = new UserInformation(userName, password);
+            if (!this.getUserInformationMap().containsKey(userName)) {
+                this.getUserInformationMap().put(userName, information);
+            }
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private void createRole(final String byUserName, final String roleName) {
+        if (checkHavePermission(byUserName, DCLActionType.CREATE)) {
+            RolePrivilege information = new RolePrivilege(roleName);
+            if (!this.getRolesPrivileges().containsKey(roleName)) {
+                this.getRolesPrivileges().put(roleName, information);
+            }
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private void removeUser(final String byUserName, final String userName) {
+        if (checkHavePermission(byUserName, DCLActionType.REMOVE)) {
+            getInvalidUserGroup().remove(userName);
+            getUserInformationMap().remove(userName);
+            getUsersPrivilege().remove(userName);
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private void removeRole(final String byUserName, final String roleName) {
+        if (checkHavePermission(byUserName, DCLActionType.REMOVE)) {
+            RolePrivilege targetRole = getRolePrivilege(roleName);
+            // users revoke role
+            Iterator<Map.Entry<String, UserPrivilege>> userPrivilegeIterator = getUsersPrivilege().entrySet().iterator();
+            while (userPrivilegeIterator.hasNext()) {
+                Map.Entry<String, UserPrivilege> kv = userPrivilegeIterator.next();
+                try {
+                    kv.getValue().revoke(targetRole.getRoleName());
+                } catch (ShardingSphereException ex) {
+                    //
+                }
+            }
+            // remove role
+            getRolesPrivileges().remove(roleName);
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private void disableUser(final String byUserName, final String userName) {
+        if (checkHavePermission(byUserName, DCLActionType.DISABLE)) {
+            getInvalidUserGroup().add(userName);
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private Boolean checkUserPrivilege(final String byUserName,
+                                      final String userName,
+                                      final String privilegeType,
+                                      final String database,
+                                      final String table,
+                                      final List<String> column) {
+        if (checkHavePermission(byUserName, DCLActionType.CHECK)) {
+            if (!getUsersPrivilege().containsKey(userName)) {
+                return false;
+            }
+            Iterator<String> iterator = column.iterator();
+            while (iterator.hasNext()) {
+                if (!checkUserPrivilege(byUserName, userName, privilegeType, database, table, iterator.next())) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private Boolean checkUserPrivilege(final String byUserName,
+                                      final String userName,
+                                      final String privilegeType,
+                                      final String database,
+                                      final String table,
+                                      final String column) {
+        if (checkHavePermission(byUserName, DCLActionType.CHECK)) {
+            if (!getUsersPrivilege().containsKey(userName)) {
+                return false;
+            }
+            boolean selfCheck = getUsersPrivilege().get(userName).checkPrivilege(privilegeType, database, table, column);
+            if (selfCheck) {
+                return true;
+            } else {
+                List<String> selfRoles = getUsersPrivilege().get(userName).getRolesName();
+                Iterator<String> iterator = selfRoles.iterator();
+                while (iterator.hasNext()) {
+                    String curRole = iterator.next();
+                    RolePrivilege curRoleModel = getRolesPrivileges().get(curRole);
+                    return curRoleModel.checkPrivilege(privilegeType, database, table, column);
+                }
+                return false;
+            }
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private Boolean checkUserPrivilege(final String byUserName,
+                                      final String userName,
+                                      final String privilegeType,
+                                      final String database,
+                                      final String table) {
+        if (checkHavePermission(byUserName, DCLActionType.CHECK)) {
+            if (!getUsersPrivilege().containsKey(userName)) {
+                return false;
+            }
+            boolean selfCheck = getUsersPrivilege().get(userName).checkPrivilege(privilegeType, database, table);
+            if (selfCheck) {
+                return true;
+            } else {
+                List<String> selfRoles = getUsersPrivilege().get(userName).getRolesName();
+                Iterator<String> iterator = selfRoles.iterator();
+                while (iterator.hasNext()) {
+                    String curRole = iterator.next();
+                    RolePrivilege curRoleModel = getRolesPrivileges().get(curRole);
+                    return curRoleModel.checkPrivilege(privilegeType, database, table);
+                }
+                return false;
+            }
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private void grantUser(final String byUserName,
+                          final String userName,
+                          final String privilegeType,
+                          final String database,
+                          final String table,
+                          final List<String> column) {
+        if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
+            createUserPrivilegeIfNotExist(userName);
+            getUsersPrivilege().get(userName).grant(privilegeType, database, table, column);
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private void grantUser(final String byUserName,
+                          final String userName,
+                          final String privilegeType,
+                          final String database,
+                          final String table) {
+        if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
+            createUserPrivilegeIfNotExist(userName);
+            getUsersPrivilege().get(userName).grant(privilegeType, database, table);
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private void grantUser(final String byUserName,
+                          final String userName,
+                          final String privilegeType,
+                          final String information) {
+        if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
+            createUserPrivilegeIfNotExist(userName);
+            String db = PrivilegeModel.splitInformation(information)[0];
+            String table = PrivilegeModel.splitInformation(information)[1];
+            getUsersPrivilege().get(userName).grant(privilegeType, db, table);
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private void grantUser(final String byUserName, final String userName, final String roleName) {
+        if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
+            createUserPrivilegeIfNotExist(userName);
+            getUsersPrivilege().get(userName).grant(roleName);
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private void grantRole(final String byUserName,
+                          final String roleName,
+                          final String privilegeType,
+                          final String database,
+                          final String table,
+                          final List<String> column) {
+        if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
+            getRolesPrivileges().get(roleName).grant(privilegeType, database, table, column);
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private void grantRole(final String byUserName,
+                          final String roleName,
+                          final String privilegeType,
+                          final String database,
+                          final String table) {
+        if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
+            getRolesPrivileges().get(roleName).grant(privilegeType, database, table);
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private void grantRole(final String byUserName,
+                          final String roleName,
+                          final String privilegeType,
+                          final String information) {
+        if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
+            String db = PrivilegeModel.splitInformation(information)[0];
+            String table = PrivilegeModel.splitInformation(information)[1];
+            getRolesPrivileges().get(roleName).grant(privilegeType, db, table);
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private void revokeUser(final String byUserName,
+                           final String userName,
+                           final String privilegeType,
+                           final String database,
+                           final String table,
+                           final List<String> column) {
+        if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
+            getUsersPrivilege().get(userName).revoke(privilegeType, database, table, column);
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private void revokeUser(final String byUserName,
+                           final String userName,
+                           final String privilegeType,
+                           final String database,
+                           final String table) {
+        if (checkHavePermission(byUserName, DCLActionType.REVOKE)) {
+            getUsersPrivilege().get(userName).revoke(privilegeType, database, table);
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private void revokeUser(final String byUserName,
+                           final String userName,
+                           final String privilegeType,
+                           final String information) {
+        if (checkHavePermission(byUserName, DCLActionType.REVOKE)) {
+            String db = PrivilegeModel.splitInformation(information)[0];
+            String table = PrivilegeModel.splitInformation(information)[1];
+            getUsersPrivilege().get(userName).revoke(privilegeType, db, table);
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private void revokeUser(final String byUserName, final String userName, final String roleName) {
+        if (checkHavePermission(byUserName, DCLActionType.REVOKE)) {
+            getUsersPrivilege().get(userName).revoke(roleName);
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private void revokeRole(final String byUserName,
+                           final String roleName,
+                           final String privilegeType,
+                           final String database,
+                           final String table,
+                           final List<String> column) {
+        if (checkHavePermission(byUserName, DCLActionType.REVOKE)) {
+            getRolePrivilege(roleName).revoke(privilegeType, database, table, column);
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private void revokeRole(final String byUserName,
+                           final String roleName,
+                           final String privilegeType,
+                           final String database,
+                           final String table) {
+        if (checkHavePermission(byUserName, DCLActionType.REVOKE)) {
+            getRolePrivilege(roleName).revoke(privilegeType, database, table);
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
+    }
+
+    private void revokeRole(final String byUserName,
+                           final String roleName,
+                           final String privilegeType,
+                           final String information) {
+        if (checkHavePermission(byUserName, DCLActionType.REVOKE)) {
+            String db = PrivilegeModel.splitInformation(information)[0];
+            String table = PrivilegeModel.splitInformation(information)[1];
+            getRolePrivilege(roleName).revoke(privilegeType, db, table);
+        } else {
+            throw PrivilegeExceptions.notHaveCurrentPermission();
+        }
     }
 
     private void createUserAction(final PrivilegeAction action) {
