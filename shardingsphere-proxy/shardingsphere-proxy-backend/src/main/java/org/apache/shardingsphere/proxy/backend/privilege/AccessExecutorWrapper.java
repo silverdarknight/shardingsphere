@@ -28,14 +28,6 @@ import java.util.Map;
 public interface AccessExecutorWrapper {
 
     /**
-     * do action for model.
-     *
-     * @param action action
-     * @return if action is check return check return
-     */
-    Boolean doAction(PrivilegeAction action);
-
-    /**
      * update user information.
      *
      * @param userInformationMap user information

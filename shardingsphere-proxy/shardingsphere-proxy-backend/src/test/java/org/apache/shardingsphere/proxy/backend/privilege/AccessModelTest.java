@@ -36,7 +36,7 @@ import java.util.LinkedList;
 import static org.junit.Assert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 
-public class AccessModelTestWithAction {
+public class AccessModelTest {
 
     private YamlAccessModel yamlAccessModel;
 
@@ -77,268 +77,214 @@ public class AccessModelTestWithAction {
 
     @Test
     public void actionTestManageUser() {
-        PrivilegeAction createUserAction = PrivilegeAction.addUser("root", "user3", "x");
-        PrivilegeAction createRoleAction = PrivilegeAction.addRole("root", "role3");
-        accessModel.doAction(createUserAction);
-        accessModel.doAction(createRoleAction);
+        accessModel.createUser("root", "user3", "x");
+        accessModel.createRole("root", "role3");
         assertThat(accessModel.getUserInformationMap().containsKey("user3"), is(true));
         assertThat(accessModel.getRolesPrivileges().containsKey("role3"), is(true));
-        PrivilegeAction removeUserAction = PrivilegeAction.removeUser("root", "user3");
-        PrivilegeAction removeRoleAction = PrivilegeAction.removeRole("root", "role3");
-        accessModel.doAction(removeUserAction);
-        accessModel.doAction(removeRoleAction);
+        accessModel.removeUser("root", "user3");
+        accessModel.removeRole("root", "role3");
         assertThat(accessModel.getUserInformationMap().containsKey("user3"), is(false));
         assertThat(accessModel.getRolesPrivileges().containsKey("role3"), is(false));
-        PrivilegeAction disableUserAction = PrivilegeAction.disableUser("root", "user1");
-        accessModel.doAction(disableUserAction);
+        accessModel.disableUser("root", "user1");
         assertThat(accessModel.getInvalidUserGroup().contains("user1"), is(true));
     }
 
     @Test
     public void actionTestCheck() {
-        PrivilegeAction checkUserTableAction = PrivilegeAction.checkPrivilege("root",
-                "user1",
-                "insert",
-                "db",
-                "table",
-                new LinkedList<>());
         List<String> cols = new LinkedList<>();
         cols.add("col");
-        PrivilegeAction checkUserColAction = PrivilegeAction.checkPrivilege("root",
+        assertThat(accessModel.checkUserPrivilege("root",
+                "user1",
+                "insert",
+                "db",
+                "table"), is(true));
+        assertThat(accessModel.checkUserPrivilege("root",
                 "user1",
                 "insert",
                 "db",
                 "table",
-                cols);
-        assertThat(accessModel.doAction(checkUserTableAction), is(true));
-        assertThat(accessModel.doAction(checkUserColAction), is(true));
+                cols), is(true));
     }
 
     @Test
     public void actionGrantTest() {
-        PrivilegeAction addRoleAction = PrivilegeAction.addRole("root", "role3");
-        accessModel.doAction(addRoleAction);
+        accessModel.createRole("root", "role3");
         // grant user role
-        PrivilegeAction grantUserRoleAction = PrivilegeAction.grantUserRole("root",
-                "user1",
-                "role3");
-        accessModel.doAction(grantUserRoleAction);
+        accessModel.grantUser("root", "user1", "role3");
         assertThat(accessModel.getUsersPrivilege().get("user1").getRoles().contains("role3"), is(true));
         // grant user cols
         List<String> cols = new LinkedList<>();
         cols.add("col1");
         cols.add("col2");
-        PrivilegeAction grantUserColsAction = PrivilegeAction.grantUserPrivilege("root",
+        accessModel.grantUser("root",
                 "user1",
                 "delete",
                 "db1",
                 "table1",
                 cols);
-        accessModel.doAction(grantUserColsAction);
         cols = new LinkedList<>();
         cols.add("col1");
-        PrivilegeAction checkAction = PrivilegeAction.checkPrivilege("root",
+        assertThat(accessModel.checkUserPrivilege("root",
                 "user1",
                 "delete",
                 "db1",
                 "table1",
-                cols);
-        assertThat(accessModel.doAction(checkAction), is(true));
-        checkAction = PrivilegeAction.checkPrivilege("root",
+                cols), is(true));
+        assertThat(accessModel.checkUserPrivilege("root",
                 "user1",
                 "delete",
                 "db1",
-                "table1",
-                new LinkedList<>());
-        assertThat(accessModel.doAction(checkAction), is(false));
+                "table1"), is(false));
         // grant user table
-        PrivilegeAction grantUserTableAction = PrivilegeAction.grantUserPrivilege("root",
+        accessModel.grantUser("root",
                 "user1",
                 "delete",
                 "db1",
-                "table1",
-                new LinkedList<>());
-        accessModel.doAction(grantUserTableAction);
-        checkAction = PrivilegeAction.checkPrivilege("root",
+                "table1");
+        assertThat(accessModel.checkUserPrivilege("root",
                 "user1",
                 "delete",
                 "db1",
-                "table1",
-                new LinkedList<>());
-        assertThat(accessModel.doAction(checkAction), is(true));
+                "table1"), is(true));
         // grant role cols
         cols = new LinkedList<>();
         cols.add("col1");
         cols.add("col2");
-        PrivilegeAction grantRoleColsAction = PrivilegeAction.grantRolePrivilege("root",
+        accessModel.grantRole("root",
                 "role1",
                 "select",
                 "db1",
                 "table1",
                 cols);
-        accessModel.doAction(grantRoleColsAction);
         cols = new LinkedList<>();
         cols.add("col1");
-        checkAction = PrivilegeAction.checkPrivilege("root",
+        assertThat(accessModel.checkUserPrivilege("root",
                 "user1",
                 "select",
                 "db1",
                 "table1",
-                cols);
-        assertThat(accessModel.doAction(checkAction), is(true));
-        checkAction = PrivilegeAction.checkPrivilege("root",
+                cols), is(true));
+        assertThat(accessModel.checkUserPrivilege("root",
                 "user1",
                 "select",
                 "db1",
-                "table1",
-                new LinkedList<>());
-        assertThat(accessModel.doAction(checkAction), is(false));
+                "table1"), is(false));
         // grant role table
-        PrivilegeAction grantRoleTableAction = PrivilegeAction.grantRolePrivilege("root",
+        accessModel.grantRole("root",
                 "role1",
                 "select",
                 "db1",
-                "table1",
-                new LinkedList<>());
-        accessModel.doAction(grantRoleTableAction);
-        checkAction = PrivilegeAction.checkPrivilege("root",
+                "table1");
+        assertThat(accessModel.checkUserPrivilege("root",
                 "user1",
                 "select",
                 "db1",
-                "table1",
-                new LinkedList<>());
-        assertThat(accessModel.doAction(checkAction), is(true));
+                "table1"), is(true));
     }
 
     @Test
     public void actionRevokeTest() {
-        PrivilegeAction addRoleAction = PrivilegeAction.addRole("root", "role3");
-        accessModel.doAction(addRoleAction);
+        accessModel.createRole("root", "role3");
         // revoke user role
-        PrivilegeAction revokeUserRoleAction = PrivilegeAction.revokeUserRole("root",
+        accessModel.revokeUser("root",
                 "user1",
                 "role1");
-        accessModel.doAction(revokeUserRoleAction);
         assertThat(accessModel.getUsersPrivilege().get("user1").getRoles().contains("role1"), is(false));
         // revoke user cols
-        revokeUserRoleAction = PrivilegeAction.revokeUserRole("root", "user1", "role2");
-        accessModel.doAction(revokeUserRoleAction);
+        accessModel.revokeUser("root", "user1", "role2");
         List<String> cols = new LinkedList<>();
         cols.add("col1");
-        PrivilegeAction revokeUserColsAction = PrivilegeAction.revokeUserPrivilege("root",
+        accessModel.revokeUser("root",
                 "user1",
                 "update",
                 "testDB",
                 "testTable",
                 cols);
-        accessModel.doAction(revokeUserColsAction);
-        PrivilegeAction checkAction = PrivilegeAction.checkPrivilege("root",
+        assertThat(accessModel.checkUserPrivilege("root",
                 "user1",
                 "update",
                 "testDB",
                 "testTable",
-                cols);
-        assertThat(accessModel.doAction(checkAction), is(false));
+                cols), is(false));
         cols = new LinkedList<>();
         cols.add("col2");
-        checkAction = PrivilegeAction.checkPrivilege("root",
+        assertThat(accessModel.checkUserPrivilege("root",
                 "user1",
                 "update",
                 "testDB",
                 "testTable",
-                cols);
-        assertThat(accessModel.doAction(checkAction), is(true));
-        checkAction = PrivilegeAction.checkPrivilege("root",
+                cols), is(true));
+        assertThat(accessModel.checkUserPrivilege("root",
                 "user1",
                 "update",
                 "testDB",
-                "testTable",
-                new LinkedList<>());
-        assertThat(accessModel.doAction(checkAction), is(false));
+                "testTable"), is(false));
         // revoke user table
-        PrivilegeAction revokeUserTableAction = PrivilegeAction.revokeUserPrivilege("root",
+        accessModel.revokeUser("root",
                 "user1",
                 "update",
                 "testDB",
-                "testTable",
-                new LinkedList<>());
-        accessModel.doAction(revokeUserTableAction);
-        checkAction = PrivilegeAction.checkPrivilege("root",
+                "testTable");
+        assertThat(accessModel.checkUserPrivilege("root",
                 "user1",
                 "update",
                 "testDB",
-                "testTable",
-                new LinkedList<>());
-        assertThat(accessModel.doAction(checkAction), is(false));
+                "testTable"), is(false));
         cols = new LinkedList<>();
         cols.add("col2");
-        checkAction = PrivilegeAction.checkPrivilege("root",
+        assertThat(accessModel.checkUserPrivilege("root",
                 "user1",
                 "update",
                 "testDB",
-                "testTable",
-                cols);
-        assertThat(accessModel.doAction(checkAction), is(false));
+                "testTable"), is(false));
         // revoke role cols
-        PrivilegeAction grantUserRoleAction = PrivilegeAction.grantUserRole("root",
+        accessModel.grantUser("root",
                 "user1",
                 "role1");
-        accessModel.doAction(grantUserRoleAction);
         cols = new LinkedList<>();
         cols.add("col1");
-        PrivilegeAction revokeRoleColsAction = PrivilegeAction.revokeRolePrivilege("root",
+        accessModel.revokeRole("root",
                 "role1",
                 "update",
                 "testDB",
                 "testTable",
                 cols);
-        accessModel.doAction(revokeRoleColsAction);
-        checkAction = PrivilegeAction.checkPrivilege("root",
+        assertThat(accessModel.checkUserPrivilege("root",
                 "user1",
                 "update",
                 "testDB",
                 "testTable",
-                cols);
-        assertThat(accessModel.doAction(checkAction), is(false));
+                cols), is(false));
         cols = new LinkedList<>();
         cols.add("col2");
-        checkAction = PrivilegeAction.checkPrivilege("root",
+        assertThat(accessModel.checkUserPrivilege("root",
                 "user1",
                 "update",
                 "testDB",
                 "testTable",
-                cols);
-        assertThat(accessModel.doAction(checkAction), is(true));
-        checkAction = PrivilegeAction.checkPrivilege("root",
+                cols), is(true));
+        assertThat(accessModel.checkUserPrivilege("root",
                 "user1",
                 "update",
                 "testDB",
-                "testTable",
-                new LinkedList<>());
-        assertThat(accessModel.doAction(checkAction), is(false));
+                "testTable"), is(false));
         // revoke role table
-        PrivilegeAction revokeRoleTableAction = PrivilegeAction.revokeRolePrivilege("root",
+        accessModel.revokeRole("root",
                 "role1",
                 "update",
                 "testDB",
-                "testTable",
-                new LinkedList<>());
-        accessModel.doAction(revokeRoleTableAction);
-        checkAction = PrivilegeAction.checkPrivilege("root",
+                "testTable");
+        assertThat(accessModel.checkUserPrivilege("root",
                 "user1",
                 "update",
                 "testDB",
-                "testTable",
-                new LinkedList<>());
-        assertThat(accessModel.doAction(checkAction), is(false));
+                "testTable"), is(false));
         cols = new LinkedList<>();
         cols.add("col2");
-        checkAction = PrivilegeAction.checkPrivilege("root",
+        assertThat(accessModel.checkUserPrivilege("root",
                 "user1",
                 "update",
                 "testDB",
-                "testTable",
-                cols);
-        assertThat(accessModel.doAction(checkAction), is(false));
+                "testTable"), is(false));
     }
 }

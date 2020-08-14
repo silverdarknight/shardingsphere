@@ -22,7 +22,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.shardingsphere.proxy.backend.privilege.common.DCLActionType;
 import org.apache.shardingsphere.proxy.backend.privilege.common.PrivilegeExceptions;
-import org.apache.shardingsphere.proxy.backend.privilege.model.PrivilegeModel;
 import org.apache.shardingsphere.proxy.backend.privilege.model.RolePrivilege;
 import org.apache.shardingsphere.proxy.backend.privilege.model.UserInformation;
 import org.apache.shardingsphere.proxy.backend.privilege.model.UserPrivilege;
@@ -211,48 +210,6 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
     }
 
     @Override
-    public Boolean doAction(final PrivilegeAction action) {
-        if (DCLActionType.CREATE == action.getActionType()) {
-            if (action.getIsUser()) {
-                createUserAction(action);
-            } else {
-                createRoleAction(action);
-            }
-        } else if (DCLActionType.REMOVE == action.getActionType()) {
-            if (action.getIsUser()) {
-                removeUserAction(action);
-            } else {
-                removeRoleAction(action);
-            }
-        } else if (DCLActionType.DISABLE == action.getActionType()) {
-            disableUserAction(action);
-        } else if (DCLActionType.CHECK == action.getActionType()) {
-            List<String> cols = action.getColumns();
-            return cols == null ? checkUserPrivilegeTable(action)
-                    : checkUserPrivilegeColumns(action);
-        } else if (action.getActionType() == DCLActionType.GRANT) {
-            if (action.getRoleName() != null) {
-                grantUserRoleAction(action);
-            } else if (action.getIsUser()) {
-                grantUserAction(action);
-            } else if (!action.getIsUser()) {
-                grantRoleAction(action);
-            }
-        } else if (action.getActionType() == DCLActionType.REVOKE) {
-            if (action.getRoleName() != null) {
-                revokeUserRoleAction(action);
-            } else if (action.getIsUser()) {
-                revokeUserAction(action);
-            } else if (!action.getIsUser()) {
-                revokeRoleAction(action);
-            }
-        } else {
-            throw PrivilegeExceptions.actionTypeErrorException();
-        }
-        return true;
-    }
-
-    @Override
     public void updateInformation(final Map<String, UserInformation> userInformationMap) {
         try {
             infoWriteLock.lock();
@@ -345,7 +302,14 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         return bos.toByteArray();
     }
 
-    private void createUser(final String byUserName, final String userName, final String password) {
+    /**
+     * create user.
+     *
+     * @param byUserName by user
+     * @param userName target user name
+     * @param password target user password
+     */
+    public void createUser(final String byUserName, final String userName, final String password) {
         if (checkHavePermission(byUserName, DCLActionType.CREATE)) {
             UserInformation information = new UserInformation(userName, password);
             if (!this.getUserInformationMap().containsKey(userName)) {
@@ -356,7 +320,13 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    private void createRole(final String byUserName, final String roleName) {
+    /**
+     * create role.
+     *
+     * @param byUserName by user
+     * @param roleName role
+     */
+    public void createRole(final String byUserName, final String roleName) {
         if (checkHavePermission(byUserName, DCLActionType.CREATE)) {
             RolePrivilege information = new RolePrivilege(roleName);
             if (!this.getRolesPrivileges().containsKey(roleName)) {
@@ -367,7 +337,13 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    private void removeUser(final String byUserName, final String userName) {
+    /**
+     * remove user.
+     *
+     * @param byUserName by user
+     * @param userName user name
+     */
+    public void removeUser(final String byUserName, final String userName) {
         if (checkHavePermission(byUserName, DCLActionType.REMOVE)) {
             getInvalidUserGroup().remove(userName);
             getUserInformationMap().remove(userName);
@@ -377,7 +353,13 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    private void removeRole(final String byUserName, final String roleName) {
+    /**
+     * remove role.
+     *
+     * @param byUserName by user
+     * @param roleName role name
+     */
+    public void removeRole(final String byUserName, final String roleName) {
         if (checkHavePermission(byUserName, DCLActionType.REMOVE)) {
             RolePrivilege targetRole = getRolePrivilege(roleName);
             // users revoke role
@@ -397,7 +379,13 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    private void disableUser(final String byUserName, final String userName) {
+    /**
+     * disable user.
+     *
+     * @param byUserName by user
+     * @param userName user name
+     */
+    public void disableUser(final String byUserName, final String userName) {
         if (checkHavePermission(byUserName, DCLActionType.DISABLE)) {
             getInvalidUserGroup().add(userName);
         } else {
@@ -405,7 +393,18 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    private Boolean checkUserPrivilege(final String byUserName,
+    /**
+     * check privilege.
+     *
+     * @param byUserName by user
+     * @param userName target user name
+     * @param privilegeType privilege type
+     * @param database db name
+     * @param table table name
+     * @param column columns name
+     * @return have this privilege
+     */
+    public Boolean checkUserPrivilege(final String byUserName,
                                       final String userName,
                                       final String privilegeType,
                                       final String database,
@@ -427,7 +426,18 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    private Boolean checkUserPrivilege(final String byUserName,
+    /**
+     * check privilege.
+     *
+     * @param byUserName by user
+     * @param userName target user name
+     * @param privilegeType privilege type
+     * @param database db name
+     * @param table table name
+     * @param column column name
+     * @return have this privilege
+     */
+    public Boolean checkUserPrivilege(final String byUserName,
                                       final String userName,
                                       final String privilegeType,
                                       final String database,
@@ -455,7 +465,17 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    private Boolean checkUserPrivilege(final String byUserName,
+    /**
+     * check privilege.
+     *
+     * @param byUserName by user
+     * @param userName target user name
+     * @param privilegeType privilege type
+     * @param database db name
+     * @param table table name
+     * @return have this privilege
+     */
+    public Boolean checkUserPrivilege(final String byUserName,
                                       final String userName,
                                       final String privilegeType,
                                       final String database,
@@ -482,7 +502,17 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    private void grantUser(final String byUserName,
+    /**
+     * grant user privileges (column).
+     *
+     * @param byUserName by user
+     * @param userName user name
+     * @param privilegeType privilege type
+     * @param database db name
+     * @param table table name
+     * @param column columns
+     */
+    public void grantUser(final String byUserName,
                           final String userName,
                           final String privilegeType,
                           final String database,
@@ -496,7 +526,16 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    private void grantUser(final String byUserName,
+    /**
+     * grant user privilege (table).
+     *
+     * @param byUserName by user
+     * @param userName user
+     * @param privilegeType privilege type
+     * @param database db name
+     * @param table table
+     */
+    public void grantUser(final String byUserName,
                           final String userName,
                           final String privilegeType,
                           final String database,
@@ -509,21 +548,14 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    private void grantUser(final String byUserName,
-                          final String userName,
-                          final String privilegeType,
-                          final String information) {
-        if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
-            createUserPrivilegeIfNotExist(userName);
-            String db = PrivilegeModel.splitInformation(information)[0];
-            String table = PrivilegeModel.splitInformation(information)[1];
-            getUsersPrivilege().get(userName).grant(privilegeType, db, table);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    private void grantUser(final String byUserName, final String userName, final String roleName) {
+    /**
+     * grant user role.
+     *
+     * @param byUserName by user
+     * @param userName target user
+     * @param roleName target role
+     */
+    public void grantUser(final String byUserName, final String userName, final String roleName) {
         if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
             createUserPrivilegeIfNotExist(userName);
             getUsersPrivilege().get(userName).grant(roleName);
@@ -532,7 +564,17 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    private void grantRole(final String byUserName,
+    /**
+     * grant role privilege (columns).
+     *
+     * @param byUserName by user
+     * @param roleName role name
+     * @param privilegeType privilege type
+     * @param database db name
+     * @param table table name
+     * @param column columns
+     */
+    public void grantRole(final String byUserName,
                           final String roleName,
                           final String privilegeType,
                           final String database,
@@ -545,7 +587,16 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    private void grantRole(final String byUserName,
+    /**
+     * grant role privilege (table).
+     *
+     * @param byUserName by user
+     * @param roleName role
+     * @param privilegeType privilege type
+     * @param database db name
+     * @param table table
+     */
+    public void grantRole(final String byUserName,
                           final String roleName,
                           final String privilegeType,
                           final String database,
@@ -557,20 +608,17 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    private void grantRole(final String byUserName,
-                          final String roleName,
-                          final String privilegeType,
-                          final String information) {
-        if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
-            String db = PrivilegeModel.splitInformation(information)[0];
-            String table = PrivilegeModel.splitInformation(information)[1];
-            getRolesPrivileges().get(roleName).grant(privilegeType, db, table);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    private void revokeUser(final String byUserName,
+    /**
+     * revoke user privilege (columns).
+     *
+     * @param byUserName by user
+     * @param userName user name
+     * @param privilegeType privilege type
+     * @param database db name
+     * @param table table name
+     * @param column columns
+     */
+    public void revokeUser(final String byUserName,
                            final String userName,
                            final String privilegeType,
                            final String database,
@@ -583,7 +631,16 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    private void revokeUser(final String byUserName,
+    /**
+     * revoke user privileges (table).
+     *
+     * @param byUserName by user
+     * @param userName user name
+     * @param privilegeType privilege type
+     * @param database db name
+     * @param table table
+     */
+    public void revokeUser(final String byUserName,
                            final String userName,
                            final String privilegeType,
                            final String database,
@@ -595,20 +652,14 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    private void revokeUser(final String byUserName,
-                           final String userName,
-                           final String privilegeType,
-                           final String information) {
-        if (checkHavePermission(byUserName, DCLActionType.REVOKE)) {
-            String db = PrivilegeModel.splitInformation(information)[0];
-            String table = PrivilegeModel.splitInformation(information)[1];
-            getUsersPrivilege().get(userName).revoke(privilegeType, db, table);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    private void revokeUser(final String byUserName, final String userName, final String roleName) {
+    /**
+     * revoke user role.
+     *
+     * @param byUserName by user
+     * @param userName user name
+     * @param roleName role
+     */
+    public void revokeUser(final String byUserName, final String userName, final String roleName) {
         if (checkHavePermission(byUserName, DCLActionType.REVOKE)) {
             getUsersPrivilege().get(userName).revoke(roleName);
         } else {
@@ -616,7 +667,17 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    private void revokeRole(final String byUserName,
+    /**
+     * revoke role privilege (columns).
+     *
+     * @param byUserName by user
+     * @param roleName role name
+     * @param privilegeType privilege type
+     * @param database db name
+     * @param table table name
+     * @param column columns
+     */
+    public void revokeRole(final String byUserName,
                            final String roleName,
                            final String privilegeType,
                            final String database,
@@ -629,7 +690,16 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    private void revokeRole(final String byUserName,
+    /**
+     * revoke role privileges (table).
+     *
+     * @param byUserName by user
+     * @param roleName role
+     * @param privilegeType privilege type
+     * @param database db name
+     * @param table table
+     */
+    public void revokeRole(final String byUserName,
                            final String roleName,
                            final String privilegeType,
                            final String database,
@@ -638,238 +708,6 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
             getRolePrivilege(roleName).revoke(privilegeType, database, table);
         } else {
             throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    private void revokeRole(final String byUserName,
-                           final String roleName,
-                           final String privilegeType,
-                           final String information) {
-        if (checkHavePermission(byUserName, DCLActionType.REVOKE)) {
-            String db = PrivilegeModel.splitInformation(information)[0];
-            String table = PrivilegeModel.splitInformation(information)[1];
-            getRolePrivilege(roleName).revoke(privilegeType, db, table);
-        } else {
-            throw PrivilegeExceptions.notHaveCurrentPermission();
-        }
-    }
-
-    private void createUserAction(final PrivilegeAction action) {
-        String password = action.getPassword();
-        try {
-            infoWriteLock.lock();
-            createUser(action.getByUser(), action.getName(), password);
-        } catch (ShardingSphereException e) {
-            throw new ShardingSphereException(e.getMessage());
-        } finally {
-            infoWriteLock.unlock();
-        }
-    }
-
-    private void createRoleAction(final PrivilegeAction action) {
-        try {
-            infoWriteLock.lock();
-            createRole(action.getByUser(), action.getName());
-        } catch (ShardingSphereException e) {
-            throw new ShardingSphereException(e.getMessage());
-        } finally {
-            infoWriteLock.unlock();
-        }
-    }
-
-    private void removeUserAction(final PrivilegeAction action) {
-        try {
-            infoWriteLock.lock();
-            removeUser(action.getByUser(), action.getName());
-        } catch (ShardingSphereException e) {
-            throw new ShardingSphereException(e.getMessage());
-        } finally {
-            infoWriteLock.unlock();
-        }
-    }
-
-    private void removeRoleAction(final PrivilegeAction action) {
-        try {
-            rolePrivilegeWriteLock.lock();
-            removeRole(action.getByUser(), action.getName());
-        } catch (ShardingSphereException e) {
-            throw new ShardingSphereException(e.getMessage());
-        } finally {
-            rolePrivilegeWriteLock.unlock();
-        }
-    }
-
-    private void disableUserAction(final PrivilegeAction action) {
-        try {
-            invalidGroupWriteLock.lock();
-            disableUser(action.getByUser(), action.getName());
-        } catch (ShardingSphereException e) {
-            throw new ShardingSphereException(e.getMessage());
-        } finally {
-            invalidGroupWriteLock.unlock();
-        }
-    }
-
-    private Boolean checkUserPrivilegeTable(final PrivilegeAction action) {
-        String name = action.getName();
-        String privilegeType = action.getPrivilegeType();
-        String dbName = action.getDbName();
-        String tableName = action.getTableName();
-        try {
-            userPrivilegeReadLock.lock();
-            return checkUserPrivilege(action.getByUser(), name, privilegeType, dbName, tableName);
-        } catch (ShardingSphereException e) {
-            throw new ShardingSphereException(e.getMessage());
-        } finally {
-            userPrivilegeReadLock.unlock();
-        }
-    }
-
-    private Boolean checkUserPrivilegeColumns(final PrivilegeAction action) {
-        String name = action.getName();
-        String privilegeType = action.getPrivilegeType();
-        String dbName = action.getDbName();
-        String tableName = action.getTableName();
-        List<String> cols = action.getColumns();
-        try {
-            userPrivilegeReadLock.lock();
-            return checkUserPrivilege(action.getByUser(), name, privilegeType, dbName, tableName, cols);
-        } catch (ShardingSphereException e) {
-            throw new ShardingSphereException(e.getMessage());
-        } finally {
-            userPrivilegeReadLock.unlock();
-        }
-    }
-
-    private void grantUserRoleAction(final PrivilegeAction action) {
-        String name = action.getName();
-        try {
-            userPrivilegeWriteLock.lock();
-            grantUser(action.getByUser(), name, action.getRoleName());
-        } catch (ShardingSphereException e) {
-            throw new ShardingSphereException(e.getMessage());
-        } finally {
-            userPrivilegeWriteLock.unlock();
-        }
-    }
-
-    private void grantUserAction(final PrivilegeAction action) {
-        String name = action.getName();
-        String privilegeType = action.getPrivilegeType();
-        String dbName = action.getDbName();
-        String tableName = action.getTableName();
-        List<String> cols = action.getColumns();
-        if (cols == null) {
-            try {
-                userPrivilegeWriteLock.lock();
-                grantUser(action.getByUser(), name, privilegeType, dbName, tableName);
-            } catch (ShardingSphereException e) {
-                throw new ShardingSphereException(e.getMessage());
-            } finally {
-                userPrivilegeWriteLock.unlock();
-            }
-        } else {
-            try {
-                userPrivilegeWriteLock.lock();
-                grantUser(action.getByUser(), name, privilegeType, dbName, tableName, cols);
-            } catch (ShardingSphereException e) {
-                throw new ShardingSphereException(e.getMessage());
-            } finally {
-                userPrivilegeWriteLock.unlock();
-            }
-        }
-    }
-
-    private void grantRoleAction(final PrivilegeAction action) {
-        String name = action.getName();
-        String privilegeType = action.getPrivilegeType();
-        String dbName = action.getDbName();
-        String tableName = action.getTableName();
-        List<String> cols = action.getColumns();
-        if (cols == null) {
-            try {
-                rolePrivilegeWriteLock.lock();
-                grantRole(action.getByUser(), name, privilegeType, dbName, tableName);
-            } catch (ShardingSphereException e) {
-                throw new ShardingSphereException(e.getMessage());
-            } finally {
-                rolePrivilegeWriteLock.unlock();
-            }
-        } else {
-            try {
-                rolePrivilegeWriteLock.lock();
-                grantRole(action.getByUser(), name, privilegeType, dbName, tableName, cols);
-            } catch (ShardingSphereException e) {
-                throw new ShardingSphereException(e.getMessage());
-            } finally {
-                rolePrivilegeWriteLock.unlock();
-            }
-        }
-    }
-
-    private void revokeUserRoleAction(final PrivilegeAction action) {
-        String name = action.getName();
-        try {
-            userPrivilegeWriteLock.lock();
-            revokeUser(action.getByUser(), name, action.getRoleName());
-        } catch (ShardingSphereException e) {
-            throw new ShardingSphereException(e.getMessage());
-        } finally {
-            userPrivilegeWriteLock.unlock();
-        }
-    }
-
-    private void revokeUserAction(final PrivilegeAction action) {
-        String privilegeType = action.getPrivilegeType();
-        String name = action.getName();
-        String dbName = action.getDbName();
-        String tableName = action.getTableName();
-        List<String> cols = action.getColumns();
-        if (cols == null) {
-            try {
-                userPrivilegeWriteLock.lock();
-                revokeUser(action.getByUser(), name, privilegeType, dbName, tableName);
-            } catch (ShardingSphereException e) {
-                throw new ShardingSphereException(e.getMessage());
-            } finally {
-                userPrivilegeWriteLock.unlock();
-            }
-        } else {
-            try {
-                userPrivilegeWriteLock.lock();
-                revokeUser(action.getByUser(), name, privilegeType, dbName, tableName, cols);
-            } catch (ShardingSphereException e) {
-                throw new ShardingSphereException(e.getMessage());
-            } finally {
-                userPrivilegeWriteLock.unlock();
-            }
-        }
-    }
-
-    private void revokeRoleAction(final PrivilegeAction action) {
-        String privilegeType = action.getPrivilegeType();
-        String name = action.getName();
-        String dbName = action.getDbName();
-        String tableName = action.getTableName();
-        List<String> cols = action.getColumns();
-        if (cols == null) {
-            try {
-                rolePrivilegeWriteLock.lock();
-                revokeRole(action.getByUser(), name, privilegeType, dbName, tableName);
-            } catch (ShardingSphereException e) {
-                throw new ShardingSphereException(e.getMessage());
-            } finally {
-                rolePrivilegeWriteLock.unlock();
-            }
-        } else {
-            try {
-                rolePrivilegeWriteLock.lock();
-                revokeRole(action.getByUser(), name, privilegeType, dbName, tableName, cols);
-            } catch (ShardingSphereException e) {
-                throw new ShardingSphereException(e.getMessage());
-            } finally {
-                rolePrivilegeWriteLock.unlock();
-            }
         }
     }
 
