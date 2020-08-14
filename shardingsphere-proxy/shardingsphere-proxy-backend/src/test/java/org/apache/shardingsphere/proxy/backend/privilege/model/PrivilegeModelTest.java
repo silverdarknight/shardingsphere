@@ -19,7 +19,7 @@ package org.apache.shardingsphere.proxy.backend.privilege.model;
 
 import org.apache.shardingsphere.infra.yaml.engine.YamlEngine;
 import org.apache.shardingsphere.proxy.backend.privilege.common.PrivilegeActionType;
-import org.apache.shardingsphere.proxy.backend.privilege.tree.Tree;
+import org.apache.shardingsphere.proxy.backend.privilege.model.tree.Tree;
 import org.apache.shardingsphere.proxy.config.ShardingConfigurationLoader;
 import org.apache.shardingsphere.proxy.config.yaml.YamlAccessModel;
 import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegeConfiguration;

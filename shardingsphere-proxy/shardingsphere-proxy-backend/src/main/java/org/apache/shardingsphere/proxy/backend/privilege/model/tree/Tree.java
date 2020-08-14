@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.proxy.backend.privilege.tree;
+package org.apache.shardingsphere.proxy.backend.privilege.model.tree;
 
 import lombok.Getter;
 import org.apache.shardingsphere.proxy.backend.privilege.common.PrivilegeExceptions;
@@ -26,13 +26,19 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
-public class Tree implements PrivilegeTreeWrapper, Serializable {
+public class Tree implements Serializable {
 
     private static final long serialVersionUID = -9025534510942972272L;
 
     private final Node root = new Node("root");
 
-    @Override
+    /**
+     * check node have path.
+     *
+     * @param dbName database
+     * @param tableName table
+     * @return have path
+     */
     public Boolean checkPath(final String dbName, final String tableName) {
         if (root.hasStar()) {
             return true;
@@ -50,7 +56,14 @@ public class Tree implements PrivilegeTreeWrapper, Serializable {
         }
     }
 
-    @Override
+    /**
+     * check node have path.
+     *
+     * @param dbName database
+     * @param tableName table
+     * @param colName column
+     * @return have path
+     */
     public Boolean checkPath(final String dbName, final String tableName, final String colName) {
         if (root.hasStar()) {
             return true;
@@ -72,7 +85,12 @@ public class Tree implements PrivilegeTreeWrapper, Serializable {
         }
     }
 
-    @Override
+    /**
+     * grant db.table.
+     *
+     * @param dbName database
+     * @param tableName table
+     */
     public void grantPath(final String dbName, final String tableName) {
         Boolean dbSuccess = root.addChild(dbName);
         if (!"*".equals(dbName.trim())) {
@@ -88,7 +106,13 @@ public class Tree implements PrivilegeTreeWrapper, Serializable {
         }
     }
 
-    @Override
+    /**
+     * grant db.table and columns.
+     *
+     * @param dbName database
+     * @param tableName table
+     * @param colNames columns
+     */
     public void grantPath(final String dbName, final String tableName, final List<String> colNames) {
         Boolean dbSuccess = root.addChild(dbName);
         if ("*".equals(dbName.trim()) && !dbSuccess) {
@@ -107,7 +131,13 @@ public class Tree implements PrivilegeTreeWrapper, Serializable {
         }
     }
 
-    @Override
+    /**
+     * grant one column.
+     *
+     * @param dbName database
+     * @param tableName table
+     * @param colNames column
+     */
     public void grantPath(final String dbName, final String tableName, final String colNames) {
         Boolean dbSuccess = root.addChild(dbName);
         if ("*".equals(dbName.trim()) && !dbSuccess) {
@@ -125,7 +155,12 @@ public class Tree implements PrivilegeTreeWrapper, Serializable {
         }
     }
 
-    @Override
+    /**
+     * revoke table.
+     *
+     * @param dbName database
+     * @param tableName table
+     */
     public void revokePath(final String dbName, final String tableName) {
         if ("*".equals(dbName.trim())) {
             if (!root.removeChild(dbName)) {
@@ -148,7 +183,13 @@ public class Tree implements PrivilegeTreeWrapper, Serializable {
         }
     }
 
-    @Override
+    /**
+     * revoke columns.
+     *
+     * @param dbName database
+     * @param tableName table
+     * @param colNames columns
+     */
     public void revokePath(final String dbName, final String tableName, final List<String> colNames) {
         if ("*".equals(dbName.trim())) {
             if (!root.removeChild(dbName)) {
@@ -171,7 +212,13 @@ public class Tree implements PrivilegeTreeWrapper, Serializable {
         }
     }
 
-    @Override
+    /**
+     * revoke column.
+     *
+     * @param dbName database
+     * @param tableName table
+     * @param colNames column
+     */
     public void revokePath(final String dbName, final String tableName, final String colNames) {
         if (dbName.trim().equals("*")) {
             if (!root.removeChild(dbName)) {

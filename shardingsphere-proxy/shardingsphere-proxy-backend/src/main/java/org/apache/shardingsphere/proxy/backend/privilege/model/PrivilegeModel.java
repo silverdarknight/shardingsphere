@@ -21,7 +21,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.shardingsphere.proxy.backend.privilege.common.PrivilegeActionType;
 import org.apache.shardingsphere.proxy.backend.privilege.common.PrivilegeExceptions;
-import org.apache.shardingsphere.proxy.backend.privilege.tree.Tree;
+import org.apache.shardingsphere.proxy.backend.privilege.model.tree.Tree;
 import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegeConfiguration;
 import org.apache.shardingsphere.proxy.config.yaml.YamlPrivilegePath;
 
