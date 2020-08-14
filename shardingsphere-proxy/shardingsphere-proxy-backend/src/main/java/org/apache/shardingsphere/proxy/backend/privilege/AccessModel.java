@@ -270,36 +270,71 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
     public byte[] informationToBytes() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(bos);
-        oos.writeObject(getUserInformationMap());
-        oos.flush();
-        return bos.toByteArray();
+        try {
+            infoReadLock.lock();
+            oos.writeObject(getUserInformationMap());
+        } finally {
+            infoReadLock.unlock();
+            oos.flush();
+            oos.close();
+        }
+        byte[] bytes = bos.toByteArray();
+        bos.close();
+        return bytes;
     }
 
     @Override
     public byte[] invalidGroupToBytes() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(bos);
-        oos.writeObject(getInvalidUserGroup());
+        try {
+            invalidGroupReadLock.lock();
+            oos.writeObject(getInvalidUserGroup());
+        } finally {
+            invalidGroupReadLock.unlock();
+            oos.flush();
+            oos.close();
+        }
         oos.flush();
-        return bos.toByteArray();
+        byte[] bytes = bos.toByteArray();
+        bos.close();
+        return bytes;
     }
 
     @Override
     public byte[] rolePrivilegesToBytes() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(bos);
-        oos.writeObject(getRolesPrivileges());
+        try {
+            rolePrivilegeReadLock.lock();
+            oos.writeObject(getRolesPrivileges());
+        } finally {
+            rolePrivilegeReadLock.unlock();
+            oos.flush();
+            oos.close();
+        }
         oos.flush();
-        return bos.toByteArray();
+        byte[] bytes = bos.toByteArray();
+        bos.close();
+        return bytes;
     }
 
     @Override
     public byte[] usersPrivilegeToBytes() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(bos);
-        oos.writeObject(getUsersPrivilege());
+        try {
+            userPrivilegeReadLock.lock();
+            oos.writeObject(getUsersPrivilege());
+        } finally {
+            userPrivilegeReadLock.unlock();
+            oos.flush();
+            oos.close();
+        }
         oos.flush();
-        return bos.toByteArray();
+        byte[] bytes = bos.toByteArray();
+        bos.close();
+        return bytes;
     }
 
     /**
