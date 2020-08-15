@@ -77,14 +77,18 @@ public class PrivilegeWatcher {
      * @return upload successful
      * @throws Exception upload failed
      */
-    public Boolean uploadUserPrivileges() throws Exception {
+    public Boolean uploadUserPrivileges() {
         Stat curStat = userPrivilegesStat;
         String userPrivilegePath = rootPath + subUserPrivilegePath;
-        client.setData()
-                .withVersion(curStat.getVersion())
-                .forPath(userPrivilegePath,accessModelRef.usersPrivilegeToBytes());
-        userPrivilegesStat = userPrivilegesParentNode.getCurrentData().getStat();
-        return true;
+        try {
+            client.setData()
+                    .withVersion(curStat.getVersion())
+                    .forPath(userPrivilegePath,accessModelRef.usersPrivilegeToBytes());
+            userPrivilegesStat = userPrivilegesParentNode.getCurrentData().getStat();
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     /**
@@ -93,14 +97,18 @@ public class PrivilegeWatcher {
      * @return upload successful
      * @throws Exception upload failed
      */
-    public Boolean uploadRolePrivileges() throws Exception {
+    public Boolean uploadRolePrivileges() {
         Stat curStat = rolePrivilegesStat;
         String rolePrivilegePath = rootPath + subRolePrivilegePath;
-        client.setData()
-                .withVersion(curStat.getVersion())
-                .forPath(rolePrivilegePath,accessModelRef.rolePrivilegesToBytes());
-        rolePrivilegesStat = rolePrivilegesParentNode.getCurrentData().getStat();
-        return true;
+        try {
+            client.setData()
+                    .withVersion(curStat.getVersion())
+                    .forPath(rolePrivilegePath,accessModelRef.rolePrivilegesToBytes());
+            rolePrivilegesStat = rolePrivilegesParentNode.getCurrentData().getStat();
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     /**
@@ -109,14 +117,18 @@ public class PrivilegeWatcher {
      * @return upload successful
      * @throws Exception upload failed
      */
-    public Boolean uploadUserInformation() throws Exception {
+    public Boolean uploadUserInformation() {
         Stat curStat = userInfoStat;
         String infoPath = rootPath + subInfoPath;
-        client.setData()
-                .withVersion(curStat.getVersion())
-                .forPath(infoPath,accessModelRef.informationToBytes());
-        userInfoStat = userInfoNode.getCurrentData().getStat();
-        return true;
+        try {
+            client.setData()
+                    .withVersion(curStat.getVersion())
+                    .forPath(infoPath,accessModelRef.informationToBytes());
+            userInfoStat = userInfoNode.getCurrentData().getStat();
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     /**
@@ -125,14 +137,18 @@ public class PrivilegeWatcher {
      * @return upload successful
      * @throws Exception upload failed
      */
-    public Boolean uploadInvalidGroup() throws Exception {
+    public Boolean uploadInvalidGroup() {
         Stat curStat = invalidGroupStat;
         String invalidPath = rootPath + subInvalidUserPath;
-        client.setData()
-                .withVersion(curStat.getVersion())
-                .forPath(invalidPath,accessModelRef.invalidGroupToBytes());
-        invalidGroupStat = invalidGroupNode.getCurrentData().getStat();
-        return true;
+        try {
+            client.setData()
+                    .withVersion(curStat.getVersion())
+                    .forPath(invalidPath,accessModelRef.invalidGroupToBytes());
+            invalidGroupStat = invalidGroupNode.getCurrentData().getStat();
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     /**

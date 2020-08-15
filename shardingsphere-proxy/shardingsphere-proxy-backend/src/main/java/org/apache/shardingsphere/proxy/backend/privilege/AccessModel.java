@@ -209,7 +209,11 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         return model;
     }
 
-    @Override
+    /**
+     * update user information.
+     *
+     * @param userInformationMap user information
+     */
     public void updateInformation(final Map<String, UserInformation> userInformationMap) {
         try {
             infoWriteLock.lock();
@@ -221,7 +225,11 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    @Override
+    /**
+     * update user privilege.
+     *
+     * @param userPrivilegeMap user privilege
+     */
     public void updateUsersPrivilege(final Map<String, UserPrivilege> userPrivilegeMap) {
         try {
             userPrivilegeWriteLock.lock();
@@ -233,7 +241,11 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    @Override
+    /**
+     * update invalid user.
+     *
+     * @param invalidUserGroup invalid user group
+     */
     public void updateInvalidGroup(final Collection<String> invalidUserGroup) {
         try {
             invalidGroupWriteLock.lock();
@@ -245,7 +257,11 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    @Override
+    /**
+     * update role privilege.
+     *
+     * @param rolePrivilegeMap role privilege
+     */
     public void updateRolePrivileges(final Map<String, RolePrivilege> rolePrivilegeMap) {
         try {
             rolePrivilegeWriteLock.lock();
@@ -257,7 +273,12 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    @Override
+    /**
+     * access model to byte.
+     *
+     * @return bytes
+     * @throws IOException to byte error
+     */
     public byte[] toBytes() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(bos);
@@ -266,7 +287,12 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         return bos.toByteArray();
     }
 
-    @Override
+    /**
+     * information model to byte.
+     *
+     * @return bytes
+     * @throws IOException to byte error
+     */
     public byte[] informationToBytes() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(bos);
@@ -283,7 +309,12 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         return bytes;
     }
 
-    @Override
+    /**
+     * invalidGroup model to byte.
+     *
+     * @return bytes
+     * @throws IOException to byte error
+     */
     public byte[] invalidGroupToBytes() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(bos);
@@ -301,7 +332,12 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         return bytes;
     }
 
-    @Override
+    /**
+     * rolePrivileges model to byte.
+     *
+     * @return bytes
+     * @throws IOException to byte error
+     */
     public byte[] rolePrivilegesToBytes() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(bos);
@@ -319,7 +355,12 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         return bytes;
     }
 
-    @Override
+    /**
+     * usersPrivilege model to byte.
+     *
+     * @return bytes
+     * @throws IOException to byte error
+     */
     public byte[] usersPrivilegeToBytes() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(bos);
@@ -337,13 +378,7 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         return bytes;
     }
 
-    /**
-     * create user.
-     *
-     * @param byUserName by user
-     * @param userName target user name
-     * @param password target user password
-     */
+    @Override
     public void createUser(final String byUserName, final String userName, final String password) {
         if (checkHavePermission(byUserName, DCLActionType.CREATE)) {
             UserInformation information = new UserInformation(userName, password);
@@ -355,12 +390,7 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    /**
-     * create role.
-     *
-     * @param byUserName by user
-     * @param roleName role
-     */
+    @Override
     public void createRole(final String byUserName, final String roleName) {
         if (checkHavePermission(byUserName, DCLActionType.CREATE)) {
             RolePrivilege information = new RolePrivilege(roleName);
@@ -372,12 +402,7 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    /**
-     * remove user.
-     *
-     * @param byUserName by user
-     * @param userName user name
-     */
+    @Override
     public void removeUser(final String byUserName, final String userName) {
         if (checkHavePermission(byUserName, DCLActionType.REMOVE)) {
             getInvalidUserGroup().remove(userName);
@@ -388,12 +413,7 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    /**
-     * remove role.
-     *
-     * @param byUserName by user
-     * @param roleName role name
-     */
+    @Override
     public void removeRole(final String byUserName, final String roleName) {
         if (checkHavePermission(byUserName, DCLActionType.REMOVE)) {
             RolePrivilege targetRole = getRolePrivilege(roleName);
@@ -414,12 +434,7 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    /**
-     * disable user.
-     *
-     * @param byUserName by user
-     * @param userName user name
-     */
+    @Override
     public void disableUser(final String byUserName, final String userName) {
         if (checkHavePermission(byUserName, DCLActionType.DISABLE)) {
             getInvalidUserGroup().add(userName);
@@ -428,17 +443,7 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    /**
-     * check privilege.
-     *
-     * @param byUserName by user
-     * @param userName target user name
-     * @param privilegeType privilege type
-     * @param database db name
-     * @param table table name
-     * @param column columns name
-     * @return have this privilege
-     */
+    @Override
     public Boolean checkUserPrivilege(final String byUserName,
                                       final String userName,
                                       final String privilegeType,
@@ -461,17 +466,7 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    /**
-     * check privilege.
-     *
-     * @param byUserName by user
-     * @param userName target user name
-     * @param privilegeType privilege type
-     * @param database db name
-     * @param table table name
-     * @param column column name
-     * @return have this privilege
-     */
+    @Override
     public Boolean checkUserPrivilege(final String byUserName,
                                       final String userName,
                                       final String privilegeType,
@@ -500,16 +495,7 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    /**
-     * check privilege.
-     *
-     * @param byUserName by user
-     * @param userName target user name
-     * @param privilegeType privilege type
-     * @param database db name
-     * @param table table name
-     * @return have this privilege
-     */
+    @Override
     public Boolean checkUserPrivilege(final String byUserName,
                                       final String userName,
                                       final String privilegeType,
@@ -537,16 +523,7 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    /**
-     * grant user privileges (column).
-     *
-     * @param byUserName by user
-     * @param userName user name
-     * @param privilegeType privilege type
-     * @param database db name
-     * @param table table name
-     * @param column columns
-     */
+    @Override
     public void grantUser(final String byUserName,
                           final String userName,
                           final String privilegeType,
@@ -561,15 +538,7 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    /**
-     * grant user privilege (table).
-     *
-     * @param byUserName by user
-     * @param userName user
-     * @param privilegeType privilege type
-     * @param database db name
-     * @param table table
-     */
+    @Override
     public void grantUser(final String byUserName,
                           final String userName,
                           final String privilegeType,
@@ -583,13 +552,7 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    /**
-     * grant user role.
-     *
-     * @param byUserName by user
-     * @param userName target user
-     * @param roleName target role
-     */
+    @Override
     public void grantUser(final String byUserName, final String userName, final String roleName) {
         if (checkHavePermission(byUserName, DCLActionType.GRANT)) {
             createUserPrivilegeIfNotExist(userName);
@@ -599,16 +562,7 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    /**
-     * grant role privilege (columns).
-     *
-     * @param byUserName by user
-     * @param roleName role name
-     * @param privilegeType privilege type
-     * @param database db name
-     * @param table table name
-     * @param column columns
-     */
+    @Override
     public void grantRole(final String byUserName,
                           final String roleName,
                           final String privilegeType,
@@ -622,15 +576,7 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    /**
-     * grant role privilege (table).
-     *
-     * @param byUserName by user
-     * @param roleName role
-     * @param privilegeType privilege type
-     * @param database db name
-     * @param table table
-     */
+    @Override
     public void grantRole(final String byUserName,
                           final String roleName,
                           final String privilegeType,
@@ -643,16 +589,7 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    /**
-     * revoke user privilege (columns).
-     *
-     * @param byUserName by user
-     * @param userName user name
-     * @param privilegeType privilege type
-     * @param database db name
-     * @param table table name
-     * @param column columns
-     */
+    @Override
     public void revokeUser(final String byUserName,
                            final String userName,
                            final String privilegeType,
@@ -666,15 +603,7 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    /**
-     * revoke user privileges (table).
-     *
-     * @param byUserName by user
-     * @param userName user name
-     * @param privilegeType privilege type
-     * @param database db name
-     * @param table table
-     */
+    @Override
     public void revokeUser(final String byUserName,
                            final String userName,
                            final String privilegeType,
@@ -687,13 +616,7 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    /**
-     * revoke user role.
-     *
-     * @param byUserName by user
-     * @param userName user name
-     * @param roleName role
-     */
+    @Override
     public void revokeUser(final String byUserName, final String userName, final String roleName) {
         if (checkHavePermission(byUserName, DCLActionType.REVOKE)) {
             getUsersPrivilege().get(userName).revoke(roleName);
@@ -702,16 +625,7 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    /**
-     * revoke role privilege (columns).
-     *
-     * @param byUserName by user
-     * @param roleName role name
-     * @param privilegeType privilege type
-     * @param database db name
-     * @param table table name
-     * @param column columns
-     */
+    @Override
     public void revokeRole(final String byUserName,
                            final String roleName,
                            final String privilegeType,
@@ -725,15 +639,7 @@ public class AccessModel implements AccessExecutorWrapper, Serializable {
         }
     }
 
-    /**
-     * revoke role privileges (table).
-     *
-     * @param byUserName by user
-     * @param roleName role
-     * @param privilegeType privilege type
-     * @param database db name
-     * @param table table
-     */
+    @Override
     public void revokeRole(final String byUserName,
                            final String roleName,
                            final String privilegeType,
