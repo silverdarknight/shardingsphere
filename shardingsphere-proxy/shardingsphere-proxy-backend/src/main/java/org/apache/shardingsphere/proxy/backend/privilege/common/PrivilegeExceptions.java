@@ -124,7 +124,12 @@ public final class PrivilegeExceptions {
         return new ShardingSphereException("Can not match privilege type");
     }
 
-    public static ShardingSphereException UploadZookeeperError() {
+    /**
+     * upload model to zookeeper failed.
+     *
+     * @return exception
+     */
+    public static ShardingSphereException uploadZookeeperError() {
         return new ShardingSphereException("Can not upload current model, please retry");
     }
 }

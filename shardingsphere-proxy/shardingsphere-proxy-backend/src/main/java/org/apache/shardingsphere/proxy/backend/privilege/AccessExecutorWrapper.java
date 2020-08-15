@@ -17,14 +17,7 @@
 
 package org.apache.shardingsphere.proxy.backend.privilege;
 
-import org.apache.shardingsphere.proxy.backend.privilege.model.RolePrivilege;
-import org.apache.shardingsphere.proxy.backend.privilege.model.UserInformation;
-import org.apache.shardingsphere.proxy.backend.privilege.model.UserPrivilege;
-
-import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 public interface AccessExecutorWrapper {
 
@@ -35,7 +28,7 @@ public interface AccessExecutorWrapper {
      * @param userName target user name
      * @param password target user password
      */
-    void createUser(final String byUserName, final String userName, final String password);
+    void createUser(String byUserName, String userName, String password);
 
     /**
      * create role.
@@ -43,7 +36,7 @@ public interface AccessExecutorWrapper {
      * @param byUserName by user
      * @param roleName role
      */
-    void createRole(final String byUserName, final String roleName);
+    void createRole(String byUserName, String roleName);
 
     /**
      * remove user.
@@ -51,7 +44,7 @@ public interface AccessExecutorWrapper {
      * @param byUserName by user
      * @param userName user name
      */
-    void removeUser(final String byUserName, final String userName);
+    void removeUser(String byUserName, String userName);
 
     /**
      * remove role.
@@ -59,7 +52,7 @@ public interface AccessExecutorWrapper {
      * @param byUserName by user
      * @param roleName role name
      */
-    void removeRole(final String byUserName, final String roleName);
+    void removeRole(String byUserName, String roleName);
 
     /**
      * disable user.
@@ -67,7 +60,7 @@ public interface AccessExecutorWrapper {
      * @param byUserName by user
      * @param userName user name
      */
-    void disableUser(final String byUserName, final String userName);
+    void disableUser(String byUserName, String userName);
 
     /**
      * check privilege.
@@ -80,12 +73,12 @@ public interface AccessExecutorWrapper {
      * @param column columns name
      * @return have this privilege
      */
-    Boolean checkUserPrivilege(final String byUserName,
-                                      final String userName,
-                                      final String privilegeType,
-                                      final String database,
-                                      final String table,
-                                      final List<String> column);
+    Boolean checkUserPrivilege(String byUserName,
+                                      String userName,
+                                      String privilegeType,
+                                      String database,
+                                      String table,
+                                      List<String> column);
 
     /**
      * check privilege.
@@ -98,12 +91,12 @@ public interface AccessExecutorWrapper {
      * @param column column name
      * @return have this privilege
      */
-    Boolean checkUserPrivilege(final String byUserName,
-                                      final String userName,
-                                      final String privilegeType,
-                                      final String database,
-                                      final String table,
-                                      final String column);
+    Boolean checkUserPrivilege(String byUserName,
+                                      String userName,
+                                      String privilegeType,
+                                      String database,
+                                      String table,
+                                      String column);
 
     /**
      * check privilege.
@@ -115,11 +108,11 @@ public interface AccessExecutorWrapper {
      * @param table table name
      * @return have this privilege
      */
-    Boolean checkUserPrivilege(final String byUserName,
-                                      final String userName,
-                                      final String privilegeType,
-                                      final String database,
-                                      final String table);
+    Boolean checkUserPrivilege(String byUserName,
+                                      String userName,
+                                      String privilegeType,
+                                      String database,
+                                      String table);
 
     /**
      * grant user privileges (column).
@@ -131,12 +124,12 @@ public interface AccessExecutorWrapper {
      * @param table table name
      * @param column columns
      */
-    void grantUser(final String byUserName,
-                          final String userName,
-                          final String privilegeType,
-                          final String database,
-                          final String table,
-                          final List<String> column);
+    void grantUser(String byUserName,
+                          String userName,
+                          String privilegeType,
+                          String database,
+                          String table,
+                          List<String> column);
 
     /**
      * grant user privilege (table).
@@ -147,11 +140,11 @@ public interface AccessExecutorWrapper {
      * @param database db name
      * @param table table
      */
-    void grantUser(final String byUserName,
-                          final String userName,
-                          final String privilegeType,
-                          final String database,
-                          final String table);
+    void grantUser(String byUserName,
+                          String userName,
+                          String privilegeType,
+                          String database,
+                          String table);
 
     /**
      * grant user role.
@@ -160,7 +153,7 @@ public interface AccessExecutorWrapper {
      * @param userName target user
      * @param roleName target role
      */
-    void grantUser(final String byUserName, final String userName, final String roleName);
+    void grantUser(String byUserName, String userName, String roleName);
 
     /**
      * grant role privilege (columns).
@@ -172,12 +165,12 @@ public interface AccessExecutorWrapper {
      * @param table table name
      * @param column columns
      */
-    void grantRole(final String byUserName,
-                          final String roleName,
-                          final String privilegeType,
-                          final String database,
-                          final String table,
-                          final List<String> column);
+    void grantRole(String byUserName,
+                          String roleName,
+                          String privilegeType,
+                          String database,
+                          String table,
+                          List<String> column);
 
     /**
      * grant role privilege (table).
@@ -188,11 +181,11 @@ public interface AccessExecutorWrapper {
      * @param database db name
      * @param table table
      */
-    void grantRole(final String byUserName,
-                          final String roleName,
-                          final String privilegeType,
-                          final String database,
-                          final String table);
+    void grantRole(String byUserName,
+                          String roleName,
+                          String privilegeType,
+                          String database,
+                          String table);
 
     /**
      * revoke user privilege (columns).
@@ -204,12 +197,12 @@ public interface AccessExecutorWrapper {
      * @param table table name
      * @param column columns
      */
-    void revokeUser(final String byUserName,
-                           final String userName,
-                           final String privilegeType,
-                           final String database,
-                           final String table,
-                           final List<String> column);
+    void revokeUser(String byUserName,
+                           String userName,
+                           String privilegeType,
+                           String database,
+                           String table,
+                           List<String> column);
 
     /**
      * revoke user privileges (table).
@@ -220,11 +213,11 @@ public interface AccessExecutorWrapper {
      * @param database db name
      * @param table table
      */
-    void revokeUser(final String byUserName,
-                           final String userName,
-                           final String privilegeType,
-                           final String database,
-                           final String table);
+    void revokeUser(String byUserName,
+                           String userName,
+                           String privilegeType,
+                           String database,
+                           String table);
 
     /**
      * revoke user role.
@@ -233,7 +226,7 @@ public interface AccessExecutorWrapper {
      * @param userName user name
      * @param roleName role
      */
-    void revokeUser(final String byUserName, final String userName, final String roleName);
+    void revokeUser(String byUserName, String userName, String roleName);
 
     /**
      * revoke role privilege (columns).
@@ -245,12 +238,12 @@ public interface AccessExecutorWrapper {
      * @param table table name
      * @param column columns
      */
-    void revokeRole(final String byUserName,
-                           final String roleName,
-                           final String privilegeType,
-                           final String database,
-                           final String table,
-                           final List<String> column);
+    void revokeRole(String byUserName,
+                           String roleName,
+                           String privilegeType,
+                           String database,
+                           String table,
+                           List<String> column);
 
     /**
      * revoke role privileges (table).
@@ -261,9 +254,9 @@ public interface AccessExecutorWrapper {
      * @param database db name
      * @param table table
      */
-    void revokeRole(final String byUserName,
-                           final String roleName,
-                           final String privilegeType,
-                           final String database,
-                           final String table);
+    void revokeRole(String byUserName,
+                           String roleName,
+                           String privilegeType,
+                           String database,
+                           String table);
 }

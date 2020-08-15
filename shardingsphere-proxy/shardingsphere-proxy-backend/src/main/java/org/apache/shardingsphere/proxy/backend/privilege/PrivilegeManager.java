@@ -1,24 +1,39 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shardingsphere.proxy.backend.privilege;
 
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
+import lombok.Getter;
 import org.apache.shardingsphere.proxy.backend.privilege.common.PrivilegeExceptions;
 
 import java.util.List;
 
-public class PrivilegeManager implements AccessExecutorWrapper{
+public class PrivilegeManager implements AccessExecutorWrapper {
 
-    private AccessModel accessModel;
+    private final AccessModel accessModel;
 
-    private PrivilegeWatcher privilegeWatcher;
+    @Getter
+    private final PrivilegeWatcher privilegeWatcher;
 
-    public PrivilegeManager(AccessModel inputModel,
-                            String connectString,
-                            int baseSleepTimeMs,
-                            int maxRetries,
-                            String namespace) throws Exception {
+    public PrivilegeManager(final AccessModel inputModel,
+                            final String connectString,
+                            final int baseSleepTimeMs,
+                            final int maxRetries,
+                            final String namespace) throws Exception {
         accessModel = inputModel;
         privilegeWatcher = new PrivilegeWatcher(accessModel,
                 connectString,
@@ -28,11 +43,11 @@ public class PrivilegeManager implements AccessExecutorWrapper{
     }
 
     @Override
-    public void createUser(String byUserName, String userName, String password) {
+    public void createUser(final String byUserName, final String userName, final String password) {
         accessModel.createUser(byUserName, userName, password);
         int retryNum = 0;
         Boolean uploadSuccess = false;
-        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMaxUpdateTime()) {
+        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMAX_UPDATE_TIME()) {
             uploadSuccess = privilegeWatcher.uploadUserInformation();
             if (!uploadSuccess) {
                 // redo action
@@ -40,15 +55,17 @@ public class PrivilegeManager implements AccessExecutorWrapper{
                 retryNum++;
             }
         }
-        if (!uploadSuccess) throw PrivilegeExceptions.UploadZookeeperError();
+        if (!uploadSuccess) {
+            throw PrivilegeExceptions.uploadZookeeperError();
+        }
     }
 
     @Override
-    public void createRole(String byUserName, String roleName) {
+    public void createRole(final String byUserName, final String roleName) {
         accessModel.createRole(byUserName, roleName);
         int retryNum = 0;
         Boolean uploadSuccess = false;
-        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMaxUpdateTime()) {
+        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMAX_UPDATE_TIME()) {
             uploadSuccess = privilegeWatcher.uploadUserInformation();
             if (!uploadSuccess) {
                 // redo action
@@ -56,15 +73,17 @@ public class PrivilegeManager implements AccessExecutorWrapper{
                 retryNum++;
             }
         }
-        if (!uploadSuccess) throw PrivilegeExceptions.UploadZookeeperError();
+        if (!uploadSuccess) {
+            throw PrivilegeExceptions.uploadZookeeperError();
+        }
     }
 
     @Override
-    public void removeUser(String byUserName, String userName) {
+    public void removeUser(final String byUserName, final String userName) {
         accessModel.removeUser(byUserName, userName);
         int retryNum = 0;
         Boolean uploadSuccess = false;
-        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMaxUpdateTime()) {
+        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMAX_UPDATE_TIME()) {
             uploadSuccess = privilegeWatcher.uploadUserInformation();
             if (!uploadSuccess) {
                 // redo action
@@ -72,15 +91,17 @@ public class PrivilegeManager implements AccessExecutorWrapper{
                 retryNum++;
             }
         }
-        if (!uploadSuccess) throw PrivilegeExceptions.UploadZookeeperError();
+        if (!uploadSuccess) {
+            throw PrivilegeExceptions.uploadZookeeperError();
+        }
     }
 
     @Override
-    public void removeRole(String byUserName, String roleName) {
+    public void removeRole(final String byUserName, final String roleName) {
         accessModel.removeRole(byUserName, roleName);
         int retryNum = 0;
         Boolean uploadSuccess = false;
-        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMaxUpdateTime()) {
+        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMAX_UPDATE_TIME()) {
             uploadSuccess = privilegeWatcher.uploadUserInformation();
             if (!uploadSuccess) {
                 // redo action
@@ -88,15 +109,17 @@ public class PrivilegeManager implements AccessExecutorWrapper{
                 retryNum++;
             }
         }
-        if (!uploadSuccess) throw PrivilegeExceptions.UploadZookeeperError();
+        if (!uploadSuccess) {
+            throw PrivilegeExceptions.uploadZookeeperError();
+        }
     }
 
     @Override
-    public void disableUser(String byUserName, String userName) {
+    public void disableUser(final String byUserName, final String userName) {
         accessModel.disableUser(byUserName, userName);
         int retryNum = 0;
         Boolean uploadSuccess = false;
-        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMaxUpdateTime()) {
+        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMAX_UPDATE_TIME()) {
             uploadSuccess = privilegeWatcher.uploadInvalidGroup();
             if (!uploadSuccess) {
                 // redo action
@@ -104,30 +127,51 @@ public class PrivilegeManager implements AccessExecutorWrapper{
                 retryNum++;
             }
         }
-        if (!uploadSuccess) throw PrivilegeExceptions.UploadZookeeperError();
+        if (!uploadSuccess) {
+            throw PrivilegeExceptions.uploadZookeeperError();
+        }
     }
 
     @Override
-    public Boolean checkUserPrivilege(String byUserName, String userName, String privilegeType, String database, String table, List<String> column) {
+    public Boolean checkUserPrivilege(final String byUserName,
+                                      final String userName,
+                                      final String privilegeType,
+                                      final String database,
+                                      final String table,
+                                      final List<String> column) {
         return accessModel.checkUserPrivilege(byUserName, userName, privilegeType, database, table, column);
     }
 
     @Override
-    public Boolean checkUserPrivilege(String byUserName, String userName, String privilegeType, String database, String table, String column) {
+    public Boolean checkUserPrivilege(final String byUserName,
+                                      final String userName,
+                                      final String privilegeType,
+                                      final String database,
+                                      final String table,
+                                      final String column) {
         return accessModel.checkUserPrivilege(byUserName, userName, privilegeType, database, table, column);
     }
 
     @Override
-    public Boolean checkUserPrivilege(String byUserName, String userName, String privilegeType, String database, String table) {
+    public Boolean checkUserPrivilege(final String byUserName,
+                                      final String userName,
+                                      final String privilegeType,
+                                      final String database,
+                                      final String table) {
         return accessModel.checkUserPrivilege(byUserName, userName, privilegeType, database, table);
     }
 
     @Override
-    public void grantUser(String byUserName, String userName, String privilegeType, String database, String table, List<String> column) {
+    public void grantUser(final String byUserName,
+                          final String userName,
+                          final String privilegeType,
+                          final String database,
+                          final String table,
+                          final List<String> column) {
         accessModel.grantUser(byUserName, userName, privilegeType, database, table, column);
         int retryNum = 0;
         Boolean uploadSuccess = false;
-        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMaxUpdateTime()) {
+        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMAX_UPDATE_TIME()) {
             uploadSuccess = privilegeWatcher.uploadUserPrivileges();
             if (!uploadSuccess) {
                 // redo action
@@ -135,15 +179,21 @@ public class PrivilegeManager implements AccessExecutorWrapper{
                 retryNum++;
             }
         }
-        if (!uploadSuccess) throw PrivilegeExceptions.UploadZookeeperError();
+        if (!uploadSuccess) {
+            throw PrivilegeExceptions.uploadZookeeperError();
+        }
     }
 
     @Override
-    public void grantUser(String byUserName, String userName, String privilegeType, String database, String table) {
+    public void grantUser(final String byUserName,
+                          final String userName,
+                          final String privilegeType,
+                          final String database,
+                          final String table) {
         accessModel.grantUser(byUserName, userName, privilegeType, database, table);
         int retryNum = 0;
         Boolean uploadSuccess = false;
-        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMaxUpdateTime()) {
+        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMAX_UPDATE_TIME()) {
             uploadSuccess = privilegeWatcher.uploadUserPrivileges();
             if (!uploadSuccess) {
                 // redo action
@@ -151,15 +201,19 @@ public class PrivilegeManager implements AccessExecutorWrapper{
                 retryNum++;
             }
         }
-        if (!uploadSuccess) throw PrivilegeExceptions.UploadZookeeperError();
+        if (!uploadSuccess) {
+            throw PrivilegeExceptions.uploadZookeeperError();
+        }
     }
 
     @Override
-    public void grantUser(String byUserName, String userName, String roleName) {
+    public void grantUser(final String byUserName,
+                          final String userName,
+                          final String roleName) {
         accessModel.grantUser(byUserName, userName, roleName);
         int retryNum = 0;
         Boolean uploadSuccess = false;
-        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMaxUpdateTime()) {
+        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMAX_UPDATE_TIME()) {
             uploadSuccess = privilegeWatcher.uploadUserPrivileges();
             if (!uploadSuccess) {
                 // redo action
@@ -167,15 +221,22 @@ public class PrivilegeManager implements AccessExecutorWrapper{
                 retryNum++;
             }
         }
-        if (!uploadSuccess) throw PrivilegeExceptions.UploadZookeeperError();
+        if (!uploadSuccess) {
+            throw PrivilegeExceptions.uploadZookeeperError();
+        }
     }
 
     @Override
-    public void grantRole(String byUserName, String roleName, String privilegeType, String database, String table, List<String> column) {
+    public void grantRole(final String byUserName,
+                          final String roleName,
+                          final String privilegeType,
+                          final String database,
+                          final String table,
+                          final List<String> column) {
         accessModel.grantRole(byUserName, roleName, privilegeType, database, table, column);
         int retryNum = 0;
         Boolean uploadSuccess = false;
-        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMaxUpdateTime()) {
+        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMAX_UPDATE_TIME()) {
             uploadSuccess = privilegeWatcher.uploadRolePrivileges();
             if (!uploadSuccess) {
                 // redo action
@@ -183,15 +244,21 @@ public class PrivilegeManager implements AccessExecutorWrapper{
                 retryNum++;
             }
         }
-        if (!uploadSuccess) throw PrivilegeExceptions.UploadZookeeperError();
+        if (!uploadSuccess) {
+            throw PrivilegeExceptions.uploadZookeeperError();
+        }
     }
 
     @Override
-    public void grantRole(String byUserName, String roleName, String privilegeType, String database, String table) {
+    public void grantRole(final String byUserName,
+                          final String roleName,
+                          final String privilegeType,
+                          final String database,
+                          final String table) {
         accessModel.grantRole(byUserName, roleName, privilegeType, database, table);
         int retryNum = 0;
         Boolean uploadSuccess = false;
-        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMaxUpdateTime()) {
+        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMAX_UPDATE_TIME()) {
             uploadSuccess = privilegeWatcher.uploadRolePrivileges();
             if (!uploadSuccess) {
                 // redo action
@@ -199,15 +266,22 @@ public class PrivilegeManager implements AccessExecutorWrapper{
                 retryNum++;
             }
         }
-        if (!uploadSuccess) throw PrivilegeExceptions.UploadZookeeperError();
+        if (!uploadSuccess) {
+            throw PrivilegeExceptions.uploadZookeeperError();
+        }
     }
 
     @Override
-    public void revokeUser(String byUserName, String userName, String privilegeType, String database, String table, List<String> column) {
+    public void revokeUser(final String byUserName,
+                           final String userName,
+                           final String privilegeType,
+                           final String database,
+                           final String table,
+                           final List<String> column) {
         accessModel.revokeUser(byUserName, userName, privilegeType, database, table, column);
         int retryNum = 0;
         Boolean uploadSuccess = false;
-        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMaxUpdateTime()) {
+        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMAX_UPDATE_TIME()) {
             uploadSuccess = privilegeWatcher.uploadUserPrivileges();
             if (!uploadSuccess) {
                 // redo action
@@ -215,15 +289,21 @@ public class PrivilegeManager implements AccessExecutorWrapper{
                 retryNum++;
             }
         }
-        if (!uploadSuccess) throw PrivilegeExceptions.UploadZookeeperError();
+        if (!uploadSuccess) {
+            throw PrivilegeExceptions.uploadZookeeperError();
+        }
     }
 
     @Override
-    public void revokeUser(String byUserName, String userName, String privilegeType, String database, String table) {
+    public void revokeUser(final String byUserName,
+                           final String userName,
+                           final String privilegeType,
+                           final String database,
+                           final String table) {
         accessModel.revokeUser(byUserName, userName, privilegeType, database, table);
         int retryNum = 0;
         Boolean uploadSuccess = false;
-        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMaxUpdateTime()) {
+        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMAX_UPDATE_TIME()) {
             uploadSuccess = privilegeWatcher.uploadUserPrivileges();
             if (!uploadSuccess) {
                 // redo action
@@ -231,15 +311,19 @@ public class PrivilegeManager implements AccessExecutorWrapper{
                 retryNum++;
             }
         }
-        if (!uploadSuccess) throw PrivilegeExceptions.UploadZookeeperError();
+        if (!uploadSuccess) {
+            throw PrivilegeExceptions.uploadZookeeperError();
+        }
     }
 
     @Override
-    public void revokeUser(String byUserName, String userName, String roleName) {
+    public void revokeUser(final String byUserName,
+                           final String userName,
+                           final String roleName) {
         accessModel.revokeUser(byUserName, userName, roleName);
         int retryNum = 0;
         Boolean uploadSuccess = false;
-        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMaxUpdateTime()) {
+        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMAX_UPDATE_TIME()) {
             uploadSuccess = privilegeWatcher.uploadUserPrivileges();
             if (!uploadSuccess) {
                 // redo action
@@ -247,15 +331,22 @@ public class PrivilegeManager implements AccessExecutorWrapper{
                 retryNum++;
             }
         }
-        if (!uploadSuccess) throw PrivilegeExceptions.UploadZookeeperError();
+        if (!uploadSuccess) {
+            throw PrivilegeExceptions.uploadZookeeperError();
+        }
     }
 
     @Override
-    public void revokeRole(String byUserName, String roleName, String privilegeType, String database, String table, List<String> column) {
+    public void revokeRole(final String byUserName,
+                           final String roleName,
+                           final String privilegeType,
+                           final String database,
+                           final String table,
+                           final List<String> column) {
         accessModel.revokeRole(byUserName, roleName, privilegeType, database, table, column);
         int retryNum = 0;
         Boolean uploadSuccess = false;
-        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMaxUpdateTime()) {
+        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMAX_UPDATE_TIME()) {
             uploadSuccess = privilegeWatcher.uploadRolePrivileges();
             if (!uploadSuccess) {
                 // redo action
@@ -263,15 +354,21 @@ public class PrivilegeManager implements AccessExecutorWrapper{
                 retryNum++;
             }
         }
-        if (!uploadSuccess) throw PrivilegeExceptions.UploadZookeeperError();
+        if (!uploadSuccess) {
+            throw PrivilegeExceptions.uploadZookeeperError();
+        }
     }
 
     @Override
-    public void revokeRole(String byUserName, String roleName, String privilegeType, String database, String table) {
+    public void revokeRole(final String byUserName,
+                           final String roleName,
+                           final String privilegeType,
+                           final String database,
+                           final String table) {
         accessModel.revokeRole(byUserName, roleName, privilegeType, database, table);
         int retryNum = 0;
         Boolean uploadSuccess = false;
-        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMaxUpdateTime()) {
+        while (!uploadSuccess && retryNum < PrivilegeWatcher.getMAX_UPDATE_TIME()) {
             uploadSuccess = privilegeWatcher.uploadRolePrivileges();
             if (!uploadSuccess) {
                 // redo action
@@ -279,6 +376,8 @@ public class PrivilegeManager implements AccessExecutorWrapper{
                 retryNum++;
             }
         }
-        if (!uploadSuccess) throw PrivilegeExceptions.UploadZookeeperError();
+        if (!uploadSuccess) {
+            throw PrivilegeExceptions.uploadZookeeperError();
+        }
     }
 }

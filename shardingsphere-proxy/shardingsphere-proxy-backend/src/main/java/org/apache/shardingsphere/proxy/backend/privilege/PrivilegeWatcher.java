@@ -18,7 +18,6 @@
 package org.apache.shardingsphere.proxy.backend.privilege;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -35,36 +34,46 @@ import org.apache.zookeeper.data.Stat;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Properties;
 
 public class PrivilegeWatcher {
 
+    @Getter
+    private static final String ROOT_PATH = "/shardingSpherePrivilegeRoot";
+
+    @Getter
+    private static final String SUB_INFO_PATH = "/userInformation";
+
+    @Getter
+    private static final String SUB_ROLE_PRIVILEGE_PATH = "/rolePrivileges";
+
+    @Getter
+    private static final String SUB_USER_PRIVILEGE_PATH = "/userPrivileges";
+
+    @Getter
+    private static final String SUB_INVALID_USER_PATH = "/invalidGroup";
+
+    @Getter
+    private static final int MAX_UPDATE_TIME = 15;
+
     private final AccessModel accessModelRef;
 
-    private CuratorFramework client;
+    private final CuratorFramework client;
 
-    @Getter
-    @Setter
-    private Properties props = new Properties();
+    private Stat userInfoStat;
 
-    public static String rootPath = "/shardingSpherePrivilegeRoot"
-            , subInfoPath = "/userInformation"
-            , subRolePrivilegePath = "/rolePrivileges"
-            , subUserPrivilegePath = "/userPrivileges"
-            , subInvalidUserPath = "/invalidGroup";
+    private Stat invalidGroupStat;
 
-    private Stat userInfoStat
-            , invalidGroupStat
-            , rolePrivilegesStat
-            , userPrivilegesStat;
+    private Stat rolePrivilegesStat;
 
-    private NodeCache invalidGroupNode
-            , userInfoNode
-            , userPrivilegesParentNode
-            , rolePrivilegesParentNode;
+    private Stat userPrivilegesStat;
 
-    @Getter
-    private static final int maxUpdateTime = 15;
+    private NodeCache invalidGroupNode;
+
+    private NodeCache userInfoNode;
+
+    private NodeCache userPrivilegesParentNode;
+
+    private NodeCache rolePrivilegesParentNode;
 
     public PrivilegeWatcher(final AccessModel accessModel,
                             final String connectString,
@@ -82,18 +91,19 @@ public class PrivilegeWatcher {
      * upload current model to remote zookeeper. And return true if upload successful.
      *
      * @return upload successful
-     * @throws Exception upload failed
      */
     public Boolean uploadUserPrivileges() {
         Stat curStat = userPrivilegesStat;
-        String userPrivilegePath = rootPath + subUserPrivilegePath;
+        String userPrivilegePath = ROOT_PATH + SUB_USER_PRIVILEGE_PATH;
         try {
             client.setData()
                     .withVersion(curStat.getVersion())
-                    .forPath(userPrivilegePath,accessModelRef.usersPrivilegeToBytes());
+                    .forPath(userPrivilegePath, accessModelRef.usersPrivilegeToBytes());
             userPrivilegesStat = userPrivilegesParentNode.getCurrentData().getStat();
             return true;
-        } catch (Exception ex) {
+            // CHECKSTYLE:OFF
+        } catch (final Exception ex) {
+            // CHECKSTYLE:ON
             return false;
         }
     }
@@ -102,18 +112,19 @@ public class PrivilegeWatcher {
      * upload current model to remote zookeeper. And return true if upload successful.
      *
      * @return upload successful
-     * @throws Exception upload failed
      */
     public Boolean uploadRolePrivileges() {
         Stat curStat = rolePrivilegesStat;
-        String rolePrivilegePath = rootPath + subRolePrivilegePath;
+        String rolePrivilegePath = ROOT_PATH + SUB_ROLE_PRIVILEGE_PATH;
         try {
             client.setData()
                     .withVersion(curStat.getVersion())
-                    .forPath(rolePrivilegePath,accessModelRef.rolePrivilegesToBytes());
+                    .forPath(rolePrivilegePath, accessModelRef.rolePrivilegesToBytes());
             rolePrivilegesStat = rolePrivilegesParentNode.getCurrentData().getStat();
             return true;
-        } catch (Exception ex) {
+            // CHECKSTYLE:OFF
+        } catch (final Exception ex) {
+            // CHECKSTYLE:ON
             return false;
         }
     }
@@ -122,18 +133,19 @@ public class PrivilegeWatcher {
      * upload current model to remote zookeeper. And return true if upload successful.
      *
      * @return upload successful
-     * @throws Exception upload failed
      */
     public Boolean uploadUserInformation() {
         Stat curStat = userInfoStat;
-        String infoPath = rootPath + subInfoPath;
+        String infoPath = ROOT_PATH + SUB_INFO_PATH;
         try {
             client.setData()
                     .withVersion(curStat.getVersion())
-                    .forPath(infoPath,accessModelRef.informationToBytes());
+                    .forPath(infoPath, accessModelRef.informationToBytes());
             userInfoStat = userInfoNode.getCurrentData().getStat();
             return true;
-        } catch (Exception ex) {
+            // CHECKSTYLE:OFF
+        } catch (final Exception ex) {
+            // CHECKSTYLE:ON
             return false;
         }
     }
@@ -142,18 +154,19 @@ public class PrivilegeWatcher {
      * upload current model to remote zookeeper. And return true if upload successful.
      *
      * @return upload successful
-     * @throws Exception upload failed
      */
     public Boolean uploadInvalidGroup() {
         Stat curStat = invalidGroupStat;
-        String invalidPath = rootPath + subInvalidUserPath;
+        String invalidPath = ROOT_PATH + SUB_INVALID_USER_PATH;
         try {
             client.setData()
                     .withVersion(curStat.getVersion())
-                    .forPath(invalidPath,accessModelRef.invalidGroupToBytes());
+                    .forPath(invalidPath, accessModelRef.invalidGroupToBytes());
             invalidGroupStat = invalidGroupNode.getCurrentData().getStat();
             return true;
-        } catch (Exception ex) {
+            // CHECKSTYLE:OFF
+        } catch (final Exception ex) {
+            // CHECKSTYLE:ON
             return false;
         }
     }
@@ -172,25 +185,25 @@ public class PrivilegeWatcher {
     }
 
     private void flushUserPrivileges(final Map<String, UserPrivilege> remoteUserPrivilege, final Stat remoteStat) {
-        if(remoteStat.getVersion() > userPrivilegesStat.getVersion()){
+        if (remoteStat.getVersion() > userPrivilegesStat.getVersion()) {
             accessModelRef.updateUsersPrivilege(remoteUserPrivilege);
         }
     }
 
     private void flushRolePrivileges(final Map<String, RolePrivilege> rolesPrivileges, final Stat remoteStat) {
-        if(remoteStat.getVersion() > rolePrivilegesStat.getVersion()){
+        if (remoteStat.getVersion() > rolePrivilegesStat.getVersion()) {
             accessModelRef.updateRolePrivileges(rolesPrivileges);
         }
     }
 
     private void flushUserInformation(final Map<String, UserInformation> remoteUserInfo, final Stat remoteStat) {
-        if(remoteStat.getVersion() > userInfoStat.getVersion()){
+        if (remoteStat.getVersion() > userInfoStat.getVersion()) {
             accessModelRef.updateInformation(remoteUserInfo);
         }
     }
 
     private void flushInvalidGroup(final Collection<String> invalidUserGroup, final Stat remoteStat) {
-        if(remoteStat.getVersion() > invalidGroupStat.getVersion()){
+        if (remoteStat.getVersion() > invalidGroupStat.getVersion()) {
             accessModelRef.updateInvalidGroup(invalidUserGroup);
         }
     }
@@ -198,8 +211,8 @@ public class PrivilegeWatcher {
     private CuratorFramework buildClient(final String connectString,
                                          final int baseSleepTimeMs,
                                          final int maxRetries,
-                                         final String namespace){
-        RetryPolicy retryPolicy = new ExponentialBackoffRetry(baseSleepTimeMs,maxRetries);
+                                         final String namespace) {
+        RetryPolicy retryPolicy = new ExponentialBackoffRetry(baseSleepTimeMs, maxRetries);
         CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
                 .connectString(connectString)
                 .retryPolicy(retryPolicy)
@@ -209,46 +222,46 @@ public class PrivilegeWatcher {
 
     private void addNodeCaches() throws Exception {
         // userInfo
-        String tmpCheckPath = rootPath+subInfoPath;
+        String tmpCheckPath = ROOT_PATH + SUB_INFO_PATH;
         if (client.checkExists().forPath(tmpCheckPath) == null) {
             client.create()
                     .creatingParentsIfNeeded()
                     .withMode(CreateMode.PERSISTENT)
                     .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
-                    .forPath(tmpCheckPath,accessModelRef.informationToBytes());
+                    .forPath(tmpCheckPath, accessModelRef.informationToBytes());
         }
         userInfoStat = client.checkExists().forPath(tmpCheckPath);
         userInfoNode = new NodeCache(client, tmpCheckPath);
         // invalidUsers
-        tmpCheckPath = rootPath+subInvalidUserPath;
+        tmpCheckPath = ROOT_PATH + SUB_INVALID_USER_PATH;
         if (client.checkExists().forPath(tmpCheckPath) == null) {
             client.create()
                     .creatingParentsIfNeeded()
                     .withMode(CreateMode.PERSISTENT)
                     .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
-                    .forPath(tmpCheckPath,accessModelRef.invalidGroupToBytes());
+                    .forPath(tmpCheckPath, accessModelRef.invalidGroupToBytes());
         }
         invalidGroupStat = client.checkExists().forPath(tmpCheckPath);
         invalidGroupNode = new NodeCache(client, tmpCheckPath);
         // user privileges
-        tmpCheckPath = rootPath+subUserPrivilegePath;
+        tmpCheckPath = ROOT_PATH + SUB_USER_PRIVILEGE_PATH;
         if (client.checkExists().forPath(tmpCheckPath) == null) {
             client.create()
                     .creatingParentsIfNeeded()
                     .withMode(CreateMode.PERSISTENT)
                     .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
-                    .forPath(tmpCheckPath,accessModelRef.usersPrivilegeToBytes());
+                    .forPath(tmpCheckPath, accessModelRef.usersPrivilegeToBytes());
         }
         userPrivilegesStat = client.checkExists().forPath(tmpCheckPath);
         userPrivilegesParentNode = new NodeCache(client, tmpCheckPath);
         // role privileges
-        tmpCheckPath = rootPath+subRolePrivilegePath;
+        tmpCheckPath = ROOT_PATH + SUB_ROLE_PRIVILEGE_PATH;
         if (client.checkExists().forPath(tmpCheckPath) == null) {
             client.create()
                     .creatingParentsIfNeeded()
                     .withMode(CreateMode.PERSISTENT)
                     .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
-                    .forPath(tmpCheckPath,accessModelRef.rolePrivilegesToBytes());
+                    .forPath(tmpCheckPath, accessModelRef.rolePrivilegesToBytes());
         }
         rolePrivilegesStat = client.checkExists().forPath(tmpCheckPath);
         rolePrivilegesParentNode = new NodeCache(client, tmpCheckPath);
