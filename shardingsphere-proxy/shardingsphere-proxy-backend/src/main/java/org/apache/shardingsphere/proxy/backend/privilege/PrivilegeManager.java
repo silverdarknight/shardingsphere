@@ -1,5 +1,9 @@
 package org.apache.shardingsphere.proxy.backend.privilege;
 
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.shardingsphere.proxy.backend.privilege.common.PrivilegeExceptions;
 
 import java.util.List;
@@ -10,8 +14,17 @@ public class PrivilegeManager implements AccessExecutorWrapper{
 
     private PrivilegeWatcher privilegeWatcher;
 
-    public PrivilegeManager() {
-        //
+    public PrivilegeManager(AccessModel inputModel,
+                            String connectString,
+                            int baseSleepTimeMs,
+                            int maxRetries,
+                            String namespace) throws Exception {
+        accessModel = inputModel;
+        privilegeWatcher = new PrivilegeWatcher(accessModel,
+                connectString,
+                baseSleepTimeMs,
+                maxRetries,
+                namespace);
     }
 
     @Override

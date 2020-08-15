@@ -18,6 +18,7 @@
 package org.apache.shardingsphere.proxy.backend.privilege;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -34,12 +35,17 @@ import org.apache.zookeeper.data.Stat;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Properties;
 
 public class PrivilegeWatcher {
 
     private final AccessModel accessModelRef;
 
-    private final CuratorFramework client;
+    private CuratorFramework client;
+
+    @Getter
+    @Setter
+    private Properties props = new Properties();
 
     public static String rootPath = "/shardingSpherePrivilegeRoot"
             , subInfoPath = "/userInformation"
@@ -63,9 +69,10 @@ public class PrivilegeWatcher {
     public PrivilegeWatcher(final AccessModel accessModel,
                             final String connectString,
                             final int baseSleepTimeMs,
-                            final int maxRetries) throws Exception {
+                            final int maxRetries,
+                            final String namespace) throws Exception {
         this.accessModelRef = accessModel;
-        client = buildClient(connectString, baseSleepTimeMs, maxRetries);
+        client = buildClient(connectString, baseSleepTimeMs, maxRetries, namespace);
         client.start();
         addNodeCaches();
         bindListenerToAccessModel();
@@ -190,11 +197,13 @@ public class PrivilegeWatcher {
 
     private CuratorFramework buildClient(final String connectString,
                                          final int baseSleepTimeMs,
-                                         final int maxRetries){
+                                         final int maxRetries,
+                                         final String namespace){
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(baseSleepTimeMs,maxRetries);
         CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
                 .connectString(connectString)
-                .retryPolicy(retryPolicy);
+                .retryPolicy(retryPolicy)
+                .namespace(namespace);
         return builder.build();
     }
 
